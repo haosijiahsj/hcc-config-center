@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/hcc-config-center?characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&connectTimeout=2000&socketTimeout=150000
+    username: root
+    password: 123456
+
+mybatis-plus:
+  global-config:
+    banner: false
+    # logic-delete-value: "null"
+    # logic-not-delete-value: 0
+#  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.hcc.config.center.domain.po
+  configuration:
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 25000
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
