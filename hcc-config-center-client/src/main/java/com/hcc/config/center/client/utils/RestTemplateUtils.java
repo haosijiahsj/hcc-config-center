@@ -1,7 +1,6 @@
 package com.hcc.config.center.client.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.hcc.config.center.client.entity.AppConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;

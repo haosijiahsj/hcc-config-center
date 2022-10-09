@@ -44,4 +44,9 @@ public class ConfigCenterController {
                 .list();
     }
 
+    @GetMapping("/get-server-node")
+    public void getServerNodes() {
+
+    }
+
 }

@@ -1,11 +1,14 @@
 package com.hcc.config.center.client.context;
 
-import com.hcc.config.center.client.entity.AppConfig;
+import com.hcc.config.center.client.constant.Constants;
+import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,26 +28,32 @@ public class ConfigCenterContext {
     private String secretKey;
     private String serverUrl;
     private Integer serverPort;
+    private boolean enableDynamicPush = false;
 
-    private Map<String, AppConfig> configMap = new HashMap<>();
+    private Map<String, AppConfigInfo> configMap = new HashMap<>();
     private Map<String, String> configKeyValueMap = new HashMap<>();
+    private List<DynamicFieldInfo> dynamicFieldInfos = new ArrayList<>();
 
+    /**
+     * 配置中心获取配置地址
+     * @return
+     */
     private String getConfigCenterUrl() {
         String urlPlaceHolder = "%s";
         if (serverPort != null) {
             urlPlaceHolder = urlPlaceHolder + ":" + serverPort;
         }
-        return String.format(urlPlaceHolder + "/config-center/get-app-config", serverUrl);
+        return String.format(urlPlaceHolder + Constants.APP_CONFIG_URI, serverUrl);
     }
 
     /**
      * 初始化上下文，从配置中心获取配置
      */
     public void initContext() {
-        List<AppConfig> appConfigs = this.getConfigFromConfigCenter();
-        for (AppConfig appConfig : appConfigs) {
-            this.configKeyValueMap.put(appConfig.getKey(), appConfig.getValue());
-            this.configMap.put(appConfig.getKey(), appConfig);
+        List<AppConfigInfo> appConfigInfos = this.getConfigFromConfigCenter();
+        for (AppConfigInfo appConfigInfo : appConfigInfos) {
+            this.configKeyValueMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
+            this.configMap.put(appConfigInfo.getKey(), appConfigInfo);
         }
     }
 
@@ -52,7 +61,7 @@ public class ConfigCenterContext {
      * 从配置中心拉取应用的所有配置
      * @return
      */
-    private List<AppConfig> getConfigFromConfigCenter() {
+    private List<AppConfigInfo> getConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl();
 
         Map<String, Object> paramMap = new HashMap<>();
@@ -62,14 +71,18 @@ public class ConfigCenterContext {
         return RestTemplateUtils.getList(configCenterUrl, paramMap);
     }
 
+    public synchronized void addDynamicFieldInfo(DynamicFieldInfo dynamicFieldInfo) {
+        dynamicFieldInfos.add(dynamicFieldInfo);
+    }
+
     /**
      * 刷新配置
      * @param key
-     * @param appConfig
+     * @param appConfigInfo
      */
-    public synchronized void refreshConfigMap(String key, AppConfig appConfig) {
-        configMap.put(key, appConfig);
-        configKeyValueMap.put(key, appConfig.getValue());
+    public synchronized void refreshConfigMap(String key, AppConfigInfo appConfigInfo) {
+        configMap.put(key, appConfigInfo);
+        configKeyValueMap.put(key, appConfigInfo.getValue());
     }
 
 }

@@ -1,8 +1,9 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.annotation.RefreshValue;
+import com.hcc.config.center.client.annotation.DynamicValue;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigCenterContext;
+import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.BeansException;
@@ -30,14 +31,14 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         Field[] declaredFields = bean.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
             StaticValue staticValue = AnnotationUtils.findAnnotation(field.getType(), StaticValue.class);
-            RefreshValue refreshValue = AnnotationUtils.findAnnotation(field.getType(), RefreshValue.class);
-            if (staticValue == null && refreshValue == null) {
+            DynamicValue dynamicValue = AnnotationUtils.findAnnotation(field.getType(), DynamicValue.class);
+            if (staticValue == null && dynamicValue == null) {
                 continue;
             }
-            String configKey = staticValue != null ? staticValue.value() : refreshValue.value();
+            String configKey = staticValue != null ? staticValue.value() : dynamicValue.value();
             this.injectConfigValue(configKey, bean, field);
-            if (refreshValue != null) {
-                this.collectRefreshValue(configKey, beanName, field);
+            if (dynamicValue != null) {
+                this.collectDynamicFieldInfo(configKey, beanName, field, bean);
             }
         }
 
@@ -75,7 +76,16 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param beanName
      * @param field
      */
-    private void collectRefreshValue(String configKey, String beanName, Field field) {}
+    private void collectDynamicFieldInfo(String configKey, String beanName, Field field, Object bean) {
+        DynamicFieldInfo dynamicFieldInfo = new DynamicFieldInfo();
+        dynamicFieldInfo.setKey(configKey);
+        dynamicFieldInfo.setField(field);
+        dynamicFieldInfo.setBeanName(beanName);
+        dynamicFieldInfo.setBean(bean);
+        dynamicFieldInfo.setBeanClass(bean.getClass());
+
+        configCenterContext.addDynamicFieldInfo(dynamicFieldInfo);
+    }
 
     /**
      * 转换为目标类型
