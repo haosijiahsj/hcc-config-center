@@ -1,4 +1,4 @@
-package com.hcc.config.center.web.controller;
+package com.hcc.config.center.server.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

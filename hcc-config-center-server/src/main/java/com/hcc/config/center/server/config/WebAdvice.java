@@ -1,4 +1,4 @@
-package com.hcc.config.center.web.config;
+package com.hcc.config.center.server.config;
 
 /**
  * WebAdvice

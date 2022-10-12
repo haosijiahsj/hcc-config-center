@@ -11,7 +11,7 @@
     <modules>
         <module>hcc-config-center-dao</module>
         <module>hcc-config-center-domain</module>
-        <module>hcc-config-center-web</module>
+        <module>hcc-config-center-server</module>
         <module>hcc-config-center-service</module>
         <module>hcc-config-center-client</module>
         <module>hcc-config-center-spring-boot-starter</module>

@@ -1,0 +1,14 @@
+spring:
+  profiles:
+    active: dao
+  application:
+    name: hcc-config-center-server
+
+server:
+  port: 8080
+  servlet:
+    context-path: /config-center
+
+config:
+  center:
+    port: 8089

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hcc-config-center-web</artifactId>
+    <artifactId>hcc-config-center-server</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -30,6 +30,10 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
         </dependency>
     </dependencies>
 

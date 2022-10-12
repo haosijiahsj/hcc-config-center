@@ -1,4 +1,4 @@
-package com.hcc.config.center.web.controller;
+package com.hcc.config.center.server.controller;
 
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
