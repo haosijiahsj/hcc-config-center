@@ -1,6 +1,7 @@
 package com.hcc.config.center.server.netty.handler;
 
 import com.hcc.config.center.server.netty.NettyChannelManage;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2022/10/12
  */
 @Slf4j
-public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<String> {
+public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
@@ -20,9 +21,9 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<Strin
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         // TODO
-        NettyChannelManage.addAppChannelRelation(msg, ctx.channel());
+        NettyChannelManage.addAppChannelRelation(null, ctx.channel());
     }
 
     @Override

@@ -21,6 +21,11 @@
             <groupId>com.hcc</groupId>
             <artifactId>hcc-config-center-dao</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

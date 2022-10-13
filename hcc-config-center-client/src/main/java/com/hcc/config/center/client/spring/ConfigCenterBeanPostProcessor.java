@@ -4,9 +4,9 @@ import com.hcc.config.center.client.annotation.DynamicValue;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigCenterContext;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.hcc.config.center.client.utils.ConvertUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -20,10 +20,9 @@ import java.util.Map;
  * @author shengjun.hu
  * @date 2022/10/8
  */
-@NoArgsConstructor
-@AllArgsConstructor
 public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
 
+    @Autowired
     private ConfigCenterContext configCenterContext;
 
     @Override
@@ -64,7 +63,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         try {
             field.setAccessible(true);
-            field.set(bean, this.convertValueToTargetType(configValue, field.getType()));
+            field.set(bean, ConvertUtils.convertValueToTargetType(configValue, field.getType()));
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
@@ -85,44 +84,6 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicFieldInfo.setBeanClass(bean.getClass());
 
         configCenterContext.addDynamicFieldInfo(dynamicFieldInfo);
-    }
-
-    /**
-     * 转换为目标类型
-     * @param value
-     * @param targetClass
-     * @return
-     */
-    private Object convertValueToTargetType(String value, Class<?> targetClass) {
-        if (String.class.equals(targetClass)) {
-            return value;
-        }
-
-        Object targetValue;
-        if (Byte.class.equals(targetClass)) {
-            targetValue = Byte.valueOf(value);
-        } else if (Short.class.equals(targetClass)) {
-            targetValue = Short.valueOf(value);
-        } else if (Integer.class.equals(targetClass)) {
-            targetValue = Integer.valueOf(value);
-        } else if (Long.class.equals(targetClass)) {
-            targetValue = Long.valueOf(value);
-        } else if (Float.class.equals(targetClass)) {
-            targetValue = Float.valueOf(value);
-        } else if (Double.class.equals(targetClass)) {
-            targetValue = Double.valueOf(value);
-        } else if (Character.class.equals(targetClass)) {
-            if (value.length() > 1) {
-                throw new IllegalArgumentException("不能转换为char");
-            }
-            targetValue = value.charAt(0);
-        } else if (Boolean.class.equals(targetClass)) {
-            targetValue = Boolean.valueOf(value);
-        } else {
-            throw new IllegalArgumentException("不支持的类型");
-        }
-
-        return targetValue;
     }
 
 }

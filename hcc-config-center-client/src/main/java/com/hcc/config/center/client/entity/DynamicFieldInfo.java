@@ -18,5 +18,7 @@ public class DynamicFieldInfo {
     private Object bean;
     private Field field;
     private Class<?> beanClass;
+    private Integer version;
+    private String value;
 
 }

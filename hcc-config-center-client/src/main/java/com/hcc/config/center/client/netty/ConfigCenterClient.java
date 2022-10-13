@@ -10,6 +10,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 客户端，接受服务端消息，动态刷新值
@@ -17,6 +19,8 @@ import lombok.AllArgsConstructor;
  * @author shengjun.hu
  * @date 2022/10/9
  */
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class ConfigCenterClient {
 

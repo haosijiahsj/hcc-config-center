@@ -38,7 +38,7 @@ public class ConfigCenterContext {
      * 配置中心获取配置地址
      * @return
      */
-    private String getConfigCenterUrl() {
+    public String getConfigCenterUrl() {
         String urlPlaceHolder = "%s";
         if (serverPort != null) {
             urlPlaceHolder = urlPlaceHolder + ":" + serverPort;
@@ -83,6 +83,24 @@ public class ConfigCenterContext {
     public synchronized void refreshConfigMap(String key, AppConfigInfo appConfigInfo) {
         configMap.put(key, appConfigInfo);
         configKeyValueMap.put(key, appConfigInfo.getValue());
+    }
+
+    /**
+     * 获取指定key的版本
+     * @param key
+     * @return
+     */
+    public Integer getKeyVersion(String key) {
+        AppConfigInfo appConfigInfo = configMap.get(key);
+        if (appConfigInfo == null) {
+            return null;
+        }
+
+        return appConfigInfo.getVersion();
+    }
+
+    public String getKeyValue(String key) {
+        return configKeyValueMap.get(key);
     }
 
 }
