@@ -103,4 +103,8 @@ public class ConfigCenterContext {
         return configKeyValueMap.get(key);
     }
 
+    public AppConfigInfo getKeyConfig(String key) {
+        return configMap.get(key);
+    }
+
 }

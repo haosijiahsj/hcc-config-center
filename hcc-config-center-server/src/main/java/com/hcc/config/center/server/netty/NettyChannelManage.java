@@ -5,11 +5,11 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +26,21 @@ public class NettyChannelManage {
     private static final String clientId = "CLIENT_ID";
 
     private static final ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    private static final Map<String, List<Channel>> appCodeChannelsMap = new ConcurrentHashMap<>();
+    private static final Map<String, AppChannel> clientIdChannelMap = new ConcurrentHashMap<>();
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class AppChannel {
+        private String clientId;
+        private String appCode;
+        private Channel channel;
+    }
+
+    private static String getClientId(Channel channel) {
+        AttributeKey<String> key = AttributeKey.valueOf(clientId);
+        return channel.attr(key).get();
+    }
 
     public synchronized static void addChannel(Channel channel) {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
@@ -37,52 +51,35 @@ public class NettyChannelManage {
 
     public synchronized static void removeChannel(Channel channel) {
         channelGroup.remove(channel);
-
-        AttributeKey<String> key = AttributeKey.valueOf(clientId);
-        String clientId = channel.attr(key).get();
-        if (clientId == null) {
-            return;
-        }
-
-        for (Map.Entry<String, List<Channel>> entry : appCodeChannelsMap.entrySet()) {
-            String appCode = entry.getKey();
-            List<Channel> channels = entry.getValue();
-
-            boolean flag = false;
-            List<Channel> newChannels = new ArrayList<>();
-            for (Channel tempChannel : channels) {
-                String tempClientId = tempChannel.attr(key).get();
-                if (clientId.equals(tempClientId)) {
-                    flag = true;
-                    continue;
-                }
-                newChannels.add(tempChannel);
-            }
-            if (flag) {
-                appCodeChannelsMap.put(appCode, newChannels);
-                break;
-            }
-        }
+        clientIdChannelMap.remove(getClientId(channel));
     }
 
     public synchronized static void addAppChannelRelation(String appCode, Channel channel) {
-        List<Channel> channels = appCodeChannelsMap.get(appCode);
-        if (channels == null) {
-            channels = new ArrayList<>();
-        }
-        channels.add(channel);
-        appCodeChannelsMap.put(appCode, channels);
+        String clientId = getClientId(channel);
+        AppChannel appChannel = new AppChannel();
+        appChannel.setClientId(clientId);
+        appChannel.setAppCode(appCode);
+        appChannel.setChannel(channel);
+
+        clientIdChannelMap.put(clientId, appChannel);
     }
 
-    public synchronized static void sendMsg(String appCode, String msg) {
-        List<Channel> channels = appCodeChannelsMap.get(appCode);
-        if (CollectionUtils.isEmpty(channels)) {
-            log.info("应用：{}没有客户端订阅，不发送消息！", appCode);
+    public synchronized static void sendMsg(String clientId, String msg) {
+        AppChannel appChannel = clientIdChannelMap.get(clientId);
+        if (appChannel == null) {
             return;
         }
-        channels.forEach(channel -> {
-            channel.writeAndFlush(msg);
-        });
+        appChannel.getChannel().writeAndFlush(msg);
+    }
+
+    public synchronized static void sendMsgToApp(String appCode, String msg) {
+        for (Map.Entry<String, AppChannel> entry : clientIdChannelMap.entrySet()) {
+            AppChannel v = entry.getValue();
+            if (!v.getAppCode().equals(appCode)) {
+                continue;
+            }
+            v.getChannel().writeAndFlush(msg);
+        }
     }
 
     public synchronized static void sendMsgToAll(String msg) {

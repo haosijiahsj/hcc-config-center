@@ -15,10 +15,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ConfigCenterConfig {
 
-    @Bean
+    @Bean(initMethod = "initContext")
     public ConfigCenterContext configCenterContext() {
         ConfigCenterContext configCenterContext = new ConfigCenterContext();
-        configCenterContext.initContext();
 
         return configCenterContext;
     }

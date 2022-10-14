@@ -2,6 +2,7 @@ package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.context.ConfigCenterContext;
 import com.hcc.config.center.client.netty.handler.ConfigCenterClientHandler;
+import com.hcc.config.center.client.netty.handler.ConfigCenterMsgHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -42,7 +43,8 @@ public class ConfigCenterClient {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             ChannelPipeline pipeline = socketChannel.pipeline();
-                            pipeline.addLast(new ConfigCenterClientHandler(configCenterContext));
+                            ConfigCenterMsgHandler configCenterMsgHandler = new ConfigCenterMsgHandler(configCenterContext);
+                            pipeline.addLast(new ConfigCenterClientHandler(configCenterMsgHandler));
                         }
                     });
             // 启动客户端连接到客户端

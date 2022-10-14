@@ -1,6 +1,7 @@
 package com.hcc.config.center.client.netty.handler;
 
-import com.hcc.config.center.client.context.ConfigCenterContext;
+import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -18,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
-    private ConfigCenterContext configCenterContext;
+    private final ConfigCenterMsgHandler configCenterMsgHandler;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -32,6 +33,8 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
             return;
         }
 
+        MsgInfo msgInfo = JsonUtils.toObject(msg, MsgInfo.class);
+        configCenterMsgHandler.addMsgToQueue(msgInfo);
     }
 
     @Override

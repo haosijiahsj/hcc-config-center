@@ -3,6 +3,7 @@ package com.hcc.config.center.client.spring;
 import com.hcc.config.center.client.annotation.DynamicValue;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigCenterContext;
+import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.utils.ConvertUtils;
 import org.springframework.beans.BeansException;
@@ -82,6 +83,13 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicFieldInfo.setBeanName(beanName);
         dynamicFieldInfo.setBean(bean);
         dynamicFieldInfo.setBeanClass(bean.getClass());
+
+        // 将value和version放进去
+        AppConfigInfo appConfigInfo = configCenterContext.getKeyConfig(configKey);
+        if (appConfigInfo != null) {
+            dynamicFieldInfo.setValue(appConfigInfo.getValue());
+            dynamicFieldInfo.setVersion(appConfigInfo.getVersion());
+        }
 
         configCenterContext.addDynamicFieldInfo(dynamicFieldInfo);
     }
