@@ -13,6 +13,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ApplicationQueryParam extends PageParam {
 
+    private String appCode;
     private String appName;
 
 }

@@ -1,5 +1,6 @@
 package com.hcc.config.center.server.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.param.ApplicationParam;
@@ -53,7 +54,8 @@ public class ApplicationController {
     @PostMapping("/page")
     public PageResult<ApplicationVo> page(@RequestBody ApplicationQueryParam param) {
         LambdaQueryWrapper<ApplicationPo> queryWrapper = new LambdaQueryWrapper<ApplicationPo>()
-                .like(param.getAppName() != null, ApplicationPo::getAppName, param.getAppName())
+                .like(StrUtil.isNotEmpty(param.getAppCode()), ApplicationPo::getAppCode, param.getAppCode())
+                .like(StrUtil.isNotEmpty(param.getAppName()), ApplicationPo::getAppName, param.getAppName())
                 .orderByDesc(ApplicationPo::getUpdateTime)
                 .orderByDesc(ApplicationPo::getId)
                 .orderByAsc(ApplicationPo::getAppCode);
