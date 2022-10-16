@@ -8,8 +8,9 @@ package com.hcc.config.center.domain.enums;
  */
 public enum AppStatusEnum {
 
-    NOT_RELEASE("未发布"),
-    HAVE_RELEASED("已发布");
+    NOT_ONLINE("未上线"),
+    ONLINE("已上线"),
+    OFFLINE("已下线");
 
     private final String desc;
 

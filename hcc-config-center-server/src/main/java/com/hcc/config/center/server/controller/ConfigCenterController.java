@@ -33,7 +33,7 @@ public class ConfigCenterController {
         ApplicationPo applicationPo = applicationService.lambdaQuery()
                 .eq(ApplicationPo::getAppCode, appCode)
                 .eq(ApplicationPo::getSecretKey, secretKey)
-                .eq(ApplicationPo::getAppStatus, AppStatusEnum.HAVE_RELEASED.name())
+                .eq(ApplicationPo::getAppStatus, AppStatusEnum.OFFLINE.name())
                 .one();
         if (applicationPo == null) {
             throw new IllegalArgumentException("无应用或密钥错误");

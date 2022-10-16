@@ -3,6 +3,7 @@ package com.hcc.config.center.client.netty.handler;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
@@ -23,7 +24,12 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        MsgInfo msgInfo = new MsgInfo();
+        msgInfo.setMsgType(MsgInfo.MsgType.INIT.getCode());
+        msgInfo.setAppCode(configCenterMsgHandler.getAppCode());
 
+        // 上报appCode
+        ctx.writeAndFlush(convertByteBuf(JsonUtils.toJson(msgInfo)));
     }
 
     @Override
@@ -51,6 +57,10 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
         byteBuf.readBytes(buffer);
 
         return new String(buffer, CharsetUtil.UTF_8);
+    }
+
+    private static ByteBuf convertByteBuf(String msg) {
+        return Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8);
     }
 
 }

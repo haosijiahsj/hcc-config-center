@@ -1,4 +1,4 @@
-package com.hcc.config.center.domain.vo;
+package com.hcc.config.center.domain.result;
 
 import lombok.Data;
 

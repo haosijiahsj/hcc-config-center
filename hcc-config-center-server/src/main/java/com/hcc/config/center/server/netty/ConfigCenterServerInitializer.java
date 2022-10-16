@@ -23,8 +23,8 @@ public class ConfigCenterServerInitializer extends ChannelInitializer<SocketChan
         // 向管道加入处理器
         ChannelPipeline pipeline = ch.pipeline();
 
-        pipeline.addLast("decoder", new StringDecoder());
-        pipeline.addLast("encoder", new StringEncoder());
+//        pipeline.addLast("decoder", new StringDecoder());
+//        pipeline.addLast("encoder", new StringEncoder());
         // 读写心跳处理
         pipeline.addLast(new IdleStateHandler(3, 5, 7, TimeUnit.SECONDS));
         // 业务处理

@@ -5,9 +5,10 @@ import com.hcc.config.center.client.context.ConfigCenterContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.netty.ConfigCenterClient;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -20,24 +21,26 @@ import java.util.Map;
  * @author shengjun.hu
  * @date 2022/10/13
  */
-public class ConfigCenterListener implements ApplicationListener<ContextStartedEvent> {
+@Slf4j
+public abstract class AbstractConfigCenterListener<T extends ApplicationEvent> implements ApplicationListener<T> {
 
     @Autowired
     private ConfigCenterContext configCenterContext;
 
     @Override
-    public void onApplicationEvent(ContextStartedEvent contextStartedEvent) {
+    public void onApplicationEvent(T contextStartedEvent) {
         if (!configCenterContext.isEnableDynamicPush()) {
+            log.info("未开启动态推送开关，无法启动配置中心客户端");
             return;
         }
-
-        ConfigCenterClient configCenterClient = new ConfigCenterClient();
-        configCenterClient.setConfigCenterContext(configCenterContext);
 
         ServerNodeInfo serverNode = this.findServerNode(configCenterContext);
         if (serverNode == null) {
+            log.warn("没有获取到配置中心服务节点，无法启动配置中心客户端");
             return;
         }
+        ConfigCenterClient configCenterClient = new ConfigCenterClient();
+        configCenterClient.setConfigCenterContext(configCenterContext);
         configCenterClient.setHost(serverNode.getHost());
         configCenterClient.setPort(serverNode.getPort());
 
@@ -66,7 +69,14 @@ public class ConfigCenterListener implements ApplicationListener<ContextStartedE
             return serverNodeInfos.get(0);
         }
 
-        // TODO 同一appCode注册到一台机器上
+        return this.chooseServerNode(configCenterContext, serverNodeInfos);
+    }
+
+    /**
+     * 负责均衡算法
+     * @return
+     */
+    protected ServerNodeInfo chooseServerNode(ConfigCenterContext configCenterContext, List<ServerNodeInfo> serverNodeInfos) {
         return null;
     }
 

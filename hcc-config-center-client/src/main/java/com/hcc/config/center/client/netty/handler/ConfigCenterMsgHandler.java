@@ -150,4 +150,8 @@ public class ConfigCenterMsgHandler {
         blockingQueue.add(msgInfo);
     }
 
+    public String getAppCode() {
+        return configCenterContext.getAppCode();
+    }
+
 }

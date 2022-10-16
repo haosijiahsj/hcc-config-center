@@ -36,7 +36,8 @@ public class HccConfigCenterApplication implements ApplicationListener<Applicati
     public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
         // 启动动态配置推送服务
         ConfigCenterServer configCenterServer = new ConfigCenterServer(configCenterProperties.getPort());
-        configCenterServer.startUp();
+
+        new Thread(configCenterServer::startUp).start();
     }
 
 }

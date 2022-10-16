@@ -1,28 +1,23 @@
-package com.hcc.config.center.client.entity;
+package com.hcc.config.center.server.netty.entity;
 
 import lombok.Data;
 
 /**
  * MsgInfo
  *
- * @author shengjun.hu
+ * @author hushengjun
  * @date 2022/10/14
  */
 @Data
 public class MsgInfo {
 
     private String msgType;
-    private String clientId;
     private String appCode;
-    private String key;
-    private String value;
-    private Integer version;
-    private Boolean forceUpdate;
 
     public enum MsgType {
         INIT("init");
 
-        private final String code;
+        private String code;
 
         MsgType(String code) {
             this.code = code;

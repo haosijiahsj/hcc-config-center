@@ -1,5 +1,6 @@
 package com.hcc.config.center.domain.po;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,11 +17,13 @@ import lombok.EqualsAndHashCode;
 public class ApplicationConfigPo extends BasePo {
 
     private Long applicationId;
+    @TableField("_key")
     private String key;
+    @TableField("_value")
     private String value;
+    @TableField("_comment")
     private String comment;
     private Boolean dynamic;
-    private Boolean allowModify;
     private Integer version;
 
 }
