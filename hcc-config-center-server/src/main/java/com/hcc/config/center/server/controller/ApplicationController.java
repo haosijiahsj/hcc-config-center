@@ -1,5 +1,6 @@
 package com.hcc.config.center.server.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
@@ -21,7 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * ApplicationController
@@ -49,6 +54,25 @@ public class ApplicationController {
         BeanUtils.copyProperties(applicationPo, applicationVo);
 
         return applicationVo;
+    }
+
+    @GetMapping("/all")
+    public List<ApplicationVo> all() {
+        List<ApplicationPo> applicationPos = applicationService.lambdaQuery()
+                .in(ApplicationPo::getAppStatus, Arrays.asList(AppStatusEnum.ONLINE.name(), AppStatusEnum.OFFLINE.name()))
+                .list();
+        if (CollectionUtil.isEmpty(applicationPos)) {
+            return Collections.emptyList();
+        }
+
+        return applicationPos.stream()
+                .map(a -> {
+                    ApplicationVo applicationVo = new ApplicationVo();
+                    BeanUtils.copyProperties(a, applicationVo);
+
+                    return applicationVo;
+                })
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/page")

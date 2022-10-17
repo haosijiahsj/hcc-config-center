@@ -15,5 +15,6 @@ public class ApplicationConfigQueryParam extends PageParam {
 
     private Long applicationId;
     private String key;
+    private Boolean dynamic;
 
 }

@@ -43,6 +43,7 @@ public class ApplicationConfigController {
         LambdaQueryWrapper<ApplicationConfigPo> queryWrapper = new LambdaQueryWrapper<ApplicationConfigPo>()
                 .eq(ApplicationConfigPo::getApplicationId, param.getApplicationId())
                 .like(StrUtil.isNotEmpty(param.getKey()), ApplicationConfigPo::getKey, param.getKey())
+                .eq(ApplicationConfigPo::getDynamic, param.getDynamic())
                 .orderByDesc(ApplicationConfigPo::getUpdateTime)
                 .orderByDesc(ApplicationConfigPo::getId);
 
