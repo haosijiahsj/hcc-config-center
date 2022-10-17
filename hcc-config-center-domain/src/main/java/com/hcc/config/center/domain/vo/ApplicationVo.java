@@ -1,5 +1,6 @@
 package com.hcc.config.center.domain.vo;
 
+import com.hcc.config.center.domain.enums.AppStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,5 +19,10 @@ public class ApplicationVo extends BaseVo {
     private String secretKey;
     private String appStatus;
     private String owner;
+
+    public String getAppStatusDesc() {
+        AppStatusEnum appStatusEnum = AppStatusEnum.getByName(appStatus);
+        return appStatusEnum == null ? null : appStatusEnum.getDesc();
+    }
 
 }

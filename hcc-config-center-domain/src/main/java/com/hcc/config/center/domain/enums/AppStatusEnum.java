@@ -22,4 +22,17 @@ public enum AppStatusEnum {
         return desc;
     }
 
+    public static AppStatusEnum getByName(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (AppStatusEnum appStatusEnum : AppStatusEnum.values()) {
+            if (appStatusEnum.name().equals(name)) {
+                return appStatusEnum;
+            }
+        }
+
+        return null;
+    }
+
 }

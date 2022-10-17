@@ -20,7 +20,5 @@ public class BasePo {
     private Long id;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    @TableLogic
-    private Integer deleted;
 
 }

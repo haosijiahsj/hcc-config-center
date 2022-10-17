@@ -57,8 +57,7 @@ public class ApplicationController {
                 .like(StrUtil.isNotEmpty(param.getAppCode()), ApplicationPo::getAppCode, param.getAppCode())
                 .like(StrUtil.isNotEmpty(param.getAppName()), ApplicationPo::getAppName, param.getAppName())
                 .orderByDesc(ApplicationPo::getUpdateTime)
-                .orderByDesc(ApplicationPo::getId)
-                .orderByAsc(ApplicationPo::getAppCode);
+                .orderByDesc(ApplicationPo::getId);
         PageResult<ApplicationPo> pageResult = applicationService.page(param, queryWrapper);
 
         return pageResult.convertToTarget(ApplicationVo.class);
@@ -70,26 +69,35 @@ public class ApplicationController {
         BeanUtils.copyProperties(param, applicationPo);
 
         LocalDateTime now = LocalDateTime.now();
+        applicationPo.setUpdateTime(now);
         if (param.getId() == null) {
             String secretKey = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             applicationPo.setSecretKey(secretKey);
             applicationPo.setAppStatus(AppStatusEnum.NOT_ONLINE.name());
             applicationPo.setCreateTime(now);
-            applicationPo.setUpdateTime(now);
-            applicationPo.setDeleted(0);
             applicationService.save(applicationPo);
         } else {
-            applicationPo.setUpdateTime(now);
-            applicationService.updateById(applicationPo);
+            this.checkApplicationExist(param.getId());
+            applicationService.lambdaUpdate()
+                    .set(ApplicationPo::getAppName, param.getAppName())
+                    .set(ApplicationPo::getOwner, param.getOwner())
+                    .eq(ApplicationPo::getId, param.getId())
+                    .update();
         }
     }
 
-    @GetMapping("/delete/{id}")
-    public void delete(@PathVariable("id") Long id) {
+    private ApplicationPo checkApplicationExist(Long id) {
         ApplicationPo applicationPo = applicationService.getById(id);
         if (applicationPo == null) {
             throw new IllegalArgumentException("应用不存在");
         }
+
+        return applicationPo;
+    }
+
+    @GetMapping("/delete/{id}")
+    public void delete(@PathVariable("id") Long id) {
+        this.checkApplicationExist(id);
         ApplicationConfigPo applicationConfigPo = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, id)
                 .last("LIMIT 1")
@@ -118,12 +126,12 @@ public class ApplicationController {
 
     @GetMapping("/offline/{id}")
     public void offline(@PathVariable("id") Long id) {
-        ApplicationPo applicationPo = applicationService.getById(id);
-        if (applicationPo == null) {
-            throw new IllegalArgumentException("应用不存在");
-        }
+        ApplicationPo applicationPo = this.checkApplicationExist(id);
         if (AppStatusEnum.OFFLINE.name().equals(applicationPo.getAppStatus())) {
             throw new IllegalArgumentException("应用已下线");
+        }
+        if (AppStatusEnum.NOT_ONLINE.name().equals(applicationPo.getAppStatus())) {
+            throw new IllegalArgumentException("应用未上线");
         }
 
         applicationService.lambdaUpdate()
