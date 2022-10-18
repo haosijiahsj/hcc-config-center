@@ -95,13 +95,22 @@ public class ApplicationController {
         LocalDateTime now = LocalDateTime.now();
         applicationPo.setUpdateTime(now);
         if (param.getId() == null) {
+            ApplicationPo existApplicationPo = applicationService.lambdaQuery()
+                    .eq(ApplicationPo::getAppCode, param.getAppCode())
+                    .one();
+            if (existApplicationPo != null) {
+                throw new IllegalArgumentException(String.format("应用编码：[%s]已存在", param.getAppCode()));
+            }
+
             String secretKey = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             applicationPo.setSecretKey(secretKey);
             applicationPo.setAppStatus(AppStatusEnum.NOT_ONLINE.name());
             applicationPo.setCreateTime(now);
+
             applicationService.save(applicationPo);
         } else {
             this.checkApplicationExist(param.getId());
+
             applicationService.lambdaUpdate()
                     .set(ApplicationPo::getAppName, param.getAppName())
                     .set(ApplicationPo::getOwner, param.getOwner())

@@ -68,11 +68,21 @@ public class ApplicationConfigController {
         LocalDateTime now = LocalDateTime.now();
         applicationConfigPo.setUpdateTime(now);
         if (param.getId() == null) {
+            ApplicationConfigPo existConfigPo = applicationConfigService.lambdaQuery()
+                    .eq(ApplicationConfigPo::getApplicationId, param.getApplicationId())
+                    .eq(ApplicationConfigPo::getKey, param.getKey())
+                    .one();
+            if (existConfigPo != null) {
+                throw new IllegalArgumentException(String.format("key: [%s]已存在", param.getKey()));
+            }
+
             applicationConfigPo.setCreateTime(now);
             applicationConfigPo.setVersion(1);
+
             applicationConfigService.save(applicationConfigPo);
         } else {
             this.checkApplicationConfigExist(param.getId());
+
             applicationConfigService.lambdaUpdate()
                     .set(ApplicationConfigPo::getValue, param.getValue())
                     .set(ApplicationConfigPo::getComment, param.getComment())
@@ -80,13 +90,14 @@ public class ApplicationConfigController {
                     .eq(ApplicationConfigPo::getId, param.getId())
                     .update();
         }
+        // TODO 记录历史
     }
 
     @PostMapping("/import")
-    private void importConfig(@RequestParam String appCode, @RequestParam MultipartFile file) {}
+    private void importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {}
 
     @PostMapping("/export")
-    private void exportConfig(@RequestParam String appCode) {}
+    private void exportConfig(@RequestParam Long applicationId) {}
 
     @GetMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {

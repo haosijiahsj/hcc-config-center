@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 
 /**
@@ -25,6 +26,20 @@ public class WebAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
+        Method method = methodParameter.getMethod();
+        if (method == null) {
+            return true;
+        }
+        if (method.getAnnotation(IgnoreRestResult.class) != null) {
+            log.info("方法：{}，包含注解IgnoreRestResult, 不进行RestResult包装", method.getName());
+            return false;
+        }
+        Class<?> declaringClass = method.getDeclaringClass();
+        if (declaringClass.getAnnotation(IgnoreRestResult.class) != null) {
+            log.info("类：{}，包含注解IgnoreRestResult, 不进行RestResult包装", declaringClass.getName());
+            return false;
+        }
+
         return true;
     }
 
