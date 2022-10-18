@@ -9,6 +9,8 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.lang.reflect.Method;
@@ -58,6 +60,7 @@ public class WebAdvice implements ResponseBodyAdvice<Object> {
     }
 
     @ExceptionHandler
+    @ResponseBody
     public RestResult<?> handleException(Throwable e) {
         log.error("访问异常", e);
         String message = e.getMessage();

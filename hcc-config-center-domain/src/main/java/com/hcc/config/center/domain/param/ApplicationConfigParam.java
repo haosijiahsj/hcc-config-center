@@ -16,6 +16,6 @@ public class ApplicationConfigParam {
     private String key;
     private String value;
     private String comment;
-    private String dynamic;
+    private Boolean dynamic;
 
 }
