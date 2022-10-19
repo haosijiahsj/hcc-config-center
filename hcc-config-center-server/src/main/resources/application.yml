@@ -5,10 +5,14 @@ spring:
     name: hcc-config-center-server
 
 server:
-  port: 8080
+  port: ${config.center.webPort}
   servlet:
     context-path: /config-center
 
 config:
   center:
-    port: 8089
+    webPort: 8080
+    serverPort: 8089
+    zkAddress:
+    zkNamespace: hcc-config-center
+    zkSessionTimeOut: 5000

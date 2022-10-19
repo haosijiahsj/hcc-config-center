@@ -18,4 +18,10 @@ public class ApplicationConfigParam {
     private String comment;
     private Boolean dynamic;
 
+    public String getKey() {
+        if (key == null) {
+            throw new IllegalArgumentException("key不能为空");
+        }
+        return key;
+    }
 }

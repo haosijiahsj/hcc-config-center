@@ -1,7 +1,7 @@
 package com.hcc.config.center.server.netty.handler;
 
-import com.hcc.config.center.server.netty.NettyChannelManage;
-import com.hcc.config.center.server.netty.entity.MsgInfo;
+import com.hcc.config.center.service.netty.NettyChannelManage;
+import com.hcc.config.center.service.netty.MsgInfo;
 import com.hcc.config.center.service.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

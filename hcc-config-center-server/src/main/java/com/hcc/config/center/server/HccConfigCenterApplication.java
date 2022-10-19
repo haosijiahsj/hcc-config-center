@@ -1,15 +1,17 @@
 package com.hcc.config.center.server;
 
-import com.hcc.config.center.server.config.ConfigCenterProperties;
+import com.hcc.config.center.service.config.ConfigCenterProperties;
 import com.hcc.config.center.server.netty.ConfigCenterServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * HccConfigCenterApplication
@@ -34,8 +36,14 @@ public class HccConfigCenterApplication implements ApplicationListener<Applicati
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
+        String host;
+        try {
+            host = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            throw new IllegalStateException("获取host异常", e);
+        }
         // 启动动态配置推送服务
-        ConfigCenterServer configCenterServer = new ConfigCenterServer(configCenterProperties.getPort());
+        ConfigCenterServer configCenterServer = new ConfigCenterServer(host, configCenterProperties.getServerPort());
 
         new Thread(configCenterServer::startUp).start();
     }

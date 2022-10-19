@@ -1,4 +1,4 @@
-package com.hcc.config.center.server.config;
+package com.hcc.config.center.service.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,6 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "config.center")
 public class ConfigCenterProperties {
 
-    private Integer port;
+    private String zkAddress;
+    private Integer zkSessionTimeOut;
+    private String zkNamespace;
+
+    private Integer serverPort;
 
 }

@@ -16,4 +16,18 @@ public class ApplicationParam {
     private String appName;
     private String owner;
 
+    public String getAppCode() {
+        if (appCode == null) {
+            throw new IllegalArgumentException("应用编码不能为空");
+        }
+        return appCode;
+    }
+
+    public String getAppName() {
+        if (appName == null) {
+            throw new IllegalArgumentException("应用名称不能为空");
+        }
+        return appName;
+    }
+
 }

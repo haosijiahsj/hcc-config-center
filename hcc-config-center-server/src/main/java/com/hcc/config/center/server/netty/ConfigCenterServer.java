@@ -1,5 +1,7 @@
 package com.hcc.config.center.server.netty;
 
+import com.hcc.config.center.service.utils.ApplicationContextUtils;
+import com.hcc.config.center.service.zk.ZkHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class ConfigCenterServer {
 
+    private final String host;
     private final int port;
 
     public void startUp() {
@@ -38,6 +41,9 @@ public class ConfigCenterServer {
             ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
             channelFuture.addListener(future -> {
                 if (channelFuture.isSuccess()) {
+                    // 注册到zk
+                    ZkHandler zkHandler = ApplicationContextUtils.getBean(ZkHandler.class);
+                    zkHandler.registerServerNode(host, port);
                     log.info("绑定端口：[{}]成功！启动完成！", port);
                 } else {
                     log.info("绑定端口：[{}]失败！", port);

@@ -7,6 +7,7 @@ import com.hcc.config.center.domain.param.ApplicationConfigQueryParam;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.result.PageResult;
 import com.hcc.config.center.domain.vo.ApplicationConfigVo;
+import com.hcc.config.center.service.ApplicationConfigPushService;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
 import org.springframework.beans.BeanUtils;
@@ -37,6 +38,9 @@ public class ApplicationConfigController {
 
     @Autowired
     private ApplicationConfigService applicationConfigService;
+
+    @Autowired
+    private ApplicationConfigPushService applicationConfigPushService;
 
     @PostMapping("/page")
     public PageResult<ApplicationConfigVo> page(@RequestBody ApplicationConfigQueryParam param) {
@@ -116,7 +120,7 @@ public class ApplicationConfigController {
             throw new IllegalArgumentException("非动态配置，无法推送");
         }
 
-        // TODO 推送
+        applicationConfigPushService.pushConfig(id);
     }
 
 }

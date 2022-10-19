@@ -3,8 +3,10 @@ package com.hcc.config.center.server.controller;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
+import com.hcc.config.center.domain.vo.ServerNodeVo;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
+import com.hcc.config.center.service.zk.ZkHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,9 @@ public class ConfigCenterController {
     @Autowired
     private ApplicationConfigService applicationConfigService;
 
+    @Autowired
+    private ZkHandler zkHandler;
+
     @GetMapping("/get-app-config")
     public List<ApplicationConfigPo> getAppConfig(String appCode, String secretKey) {
         ApplicationPo applicationPo = applicationService.lambdaQuery()
@@ -45,8 +50,8 @@ public class ConfigCenterController {
     }
 
     @GetMapping("/get-server-node")
-    public void getServerNodes() {
-
+    public List<ServerNodeVo> getServerNodes() {
+        return zkHandler.findAllServerNode();
     }
 
 }
