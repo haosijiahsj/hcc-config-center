@@ -114,7 +114,7 @@ public class ApplicationConfigController {
     }
 
     @GetMapping("/push/{id}")
-    public void push(Long id) {
+    public void push(@PathVariable("id") Long id) {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
         if (!applicationConfigPo.getDynamic()) {
             throw new IllegalArgumentException("非动态配置，无法推送");

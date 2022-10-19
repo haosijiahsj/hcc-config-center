@@ -11,8 +11,8 @@ server:
 
 config:
   center:
-    webPort: 8080
+    webPort: 8088
     serverPort: 8089
-    zkAddress:
+    zkAddress: 127.0.0.1:2181
     zkNamespace: hcc-config-center
     zkSessionTimeOut: 5000

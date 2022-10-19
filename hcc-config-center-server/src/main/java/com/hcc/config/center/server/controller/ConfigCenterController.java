@@ -4,6 +4,7 @@ import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
+import com.hcc.config.center.server.config.IgnoreRestResult;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
 import com.hcc.config.center.service.zk.ZkHandler;
@@ -20,6 +21,7 @@ import java.util.List;
  * @author shengjun.hu
  * @date 2022/10/8
  */
+@IgnoreRestResult
 @RestController
 @RequestMapping
 public class ConfigCenterController {

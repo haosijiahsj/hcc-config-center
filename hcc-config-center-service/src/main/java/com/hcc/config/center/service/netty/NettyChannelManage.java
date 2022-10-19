@@ -1,5 +1,7 @@
 package com.hcc.config.center.service.netty;
 
+import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
+import com.hcc.config.center.service.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -95,6 +97,19 @@ public class NettyChannelManage {
                 continue;
             }
             v.getChannel().writeAndFlush(convertByteBuf(msg));
+
+            log.info("客户端：{}，消息: {}发送成功！", v.getClientId(), msg);
+        }
+    }
+
+    public synchronized static void sendMsgToApp(String appCode, PushConfigClientMsgVo msg) {
+        for (Map.Entry<String, AppChannel> entry : clientIdChannelMap.entrySet()) {
+            AppChannel v = entry.getValue();
+            if (!v.getAppCode().equals(appCode)) {
+                continue;
+            }
+            msg.setClientId(v.getClientId());
+            v.getChannel().writeAndFlush(convertByteBuf(JsonUtils.toJson(msg)));
 
             log.info("客户端：{}，消息: {}发送成功！", v.getClientId(), msg);
         }

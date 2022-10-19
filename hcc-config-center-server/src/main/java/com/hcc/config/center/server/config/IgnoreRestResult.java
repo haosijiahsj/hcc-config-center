@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @author shengjun.hu
  * @date 2022/10/18
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IgnoreRestResult {
 }
