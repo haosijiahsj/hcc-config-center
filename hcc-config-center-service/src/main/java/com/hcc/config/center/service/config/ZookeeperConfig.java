@@ -21,7 +21,7 @@ public class ZookeeperConfig {
     @Autowired
     private ConfigCenterProperties configCenterProperties;
 
-    @Bean
+    @Bean(initMethod = "start", destroyMethod = "close")
     public CuratorFramework curatorFramework() {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
@@ -29,10 +29,8 @@ public class ZookeeperConfig {
                 .sessionTimeoutMs(configCenterProperties.getZkSessionTimeOut())
                 .retryPolicy(retryPolicy)
                 .namespace(configCenterProperties.getZkNamespace());
-        CuratorFramework curatorFramework = builder.build();
-        curatorFramework.start();
 
-        return curatorFramework;
+        return builder.build();
     }
 
 }

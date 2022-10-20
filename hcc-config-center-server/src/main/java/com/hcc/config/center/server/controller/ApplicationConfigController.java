@@ -2,9 +2,11 @@ package com.hcc.config.center.server.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.param.ApplicationConfigParam;
 import com.hcc.config.center.domain.param.ApplicationConfigQueryParam;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
+import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.result.PageResult;
 import com.hcc.config.center.domain.vo.ApplicationConfigVo;
 import com.hcc.config.center.service.ApplicationConfigPushService;
@@ -106,21 +108,26 @@ public class ApplicationConfigController {
     @GetMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
+        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
         applicationConfigService.removeById(id);
 
-        if (applicationConfigPo.getDynamic()) {
-            // TODO 推送
+        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+            applicationConfigPushService.pushDeleteConfig(applicationPo.getAppCode(), applicationConfigPo.getKey());
         }
     }
 
     @GetMapping("/push/{id}")
-    public void push(@PathVariable("id") Long id) {
+    public void push(@PathVariable("id") Long id, @RequestParam(required = false) Boolean forceUpdate) {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
         if (!applicationConfigPo.getDynamic()) {
             throw new IllegalArgumentException("非动态配置，无法推送");
         }
+        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
+        if (!AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+            throw new IllegalArgumentException("应用未上线，无法推送");
+        }
 
-        applicationConfigPushService.pushConfig(id);
+        applicationConfigPushService.pushConfig(id, forceUpdate);
     }
 
 }

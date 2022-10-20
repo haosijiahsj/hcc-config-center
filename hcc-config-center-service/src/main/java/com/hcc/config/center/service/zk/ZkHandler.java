@@ -6,9 +6,6 @@ import com.hcc.config.center.domain.vo.ServerNodeVo;
 import com.hcc.config.center.service.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +33,7 @@ public class ZkHandler {
      * @param nodeData
      */
     public synchronized void addPushConfigNode(PushConfigNodeDataVo nodeData) {
-        String path = NodePathConstants.PUSH_CONFIG_PATH + "/" + nodeData.getAppCode() + "_" + nodeData.getKey();
+        String path = this.buildPushConfigPath(nodeData.getAppCode(), nodeData.getKey());
         String data = JsonUtils.toJson(nodeData);
         try {
             Stat stat = curatorFramework.checkExists().forPath(path);
@@ -47,11 +44,28 @@ public class ZkHandler {
                         .forPath(path, data.getBytes());
             } else {
                 curatorFramework.setData()
-                        .withVersion(nodeData.getVersion())
                         .forPath(path, data.getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
-            log.error("创建推送节点失败！", e);
+            log.error("创建或更新推送节点失败！", e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private String buildPushConfigPath(String appCode, String key) {
+        return NodePathConstants.PUSH_CONFIG_PATH + "/" + appCode + "/" + key;
+    }
+
+    /**
+     * 删除推送节点
+     * @param nodeData
+     */
+    public synchronized void deletePushConfigNode(PushConfigNodeDataVo nodeData) {
+        String path = this.buildPushConfigPath(nodeData.getAppCode(), nodeData.getKey());
+        try {
+            curatorFramework.delete().forPath(path);
+        } catch (Exception e) {
+            log.error("删除推送节点失败！", e);
             throw new IllegalStateException(e);
         }
     }
@@ -67,6 +81,7 @@ public class ZkHandler {
                     .creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
                     .forPath(NodePathConstants.SERVER_NODE_PATH + String.format("/%s:%s", host, port));
+            log.info("服务注册成功，host: {}, port: {}", host, port);
         } catch (Exception e) {
             log.error("创建服务节点失败！", e);
             throw new IllegalStateException(e);

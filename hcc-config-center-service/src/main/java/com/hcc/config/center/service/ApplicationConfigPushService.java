@@ -8,6 +8,8 @@ package com.hcc.config.center.service;
  */
 public interface ApplicationConfigPushService {
 
-    void pushConfig(Long id);
+    void pushConfig(Long id, Boolean forceUpdate);
+
+    void pushDeleteConfig(String appCode, String key);
 
 }

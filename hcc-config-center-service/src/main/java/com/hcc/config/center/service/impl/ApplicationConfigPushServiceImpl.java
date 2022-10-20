@@ -29,7 +29,7 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
     private ZkHandler zkHandler;
 
     @Override
-    public void pushConfig(Long id) {
+    public void pushConfig(Long id, Boolean forceUpdate) {
         ApplicationConfigPo applicationConfigPo = applicationConfigService.getById(id);
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
 
@@ -39,8 +39,20 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         nodeDataVo.setKey(applicationConfigPo.getKey());
         nodeDataVo.setValue(applicationConfigPo.getValue());
         nodeDataVo.setVersion(applicationConfigPo.getVersion());
+        nodeDataVo.setForceUpdate(forceUpdate);
+        nodeDataVo.setForceUpdate(true);
 
         zkHandler.addPushConfigNode(nodeDataVo);
+    }
+
+    @Override
+    public void pushDeleteConfig(String appCode, String key) {
+        PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
+        nodeDataVo.setAppCode(appCode);
+        nodeDataVo.setKey(key);
+        nodeDataVo.setForceUpdate(true);
+
+        zkHandler.deletePushConfigNode(nodeDataVo);
     }
 
 }

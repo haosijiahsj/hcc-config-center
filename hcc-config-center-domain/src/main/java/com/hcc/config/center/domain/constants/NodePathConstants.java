@@ -9,6 +9,6 @@ package com.hcc.config.center.domain.constants;
 public interface NodePathConstants {
 
     String SERVER_NODE_PATH = "/serverNode";
-    String PUSH_CONFIG_PATH = "/pushConfig";
+    String PUSH_CONFIG_PATH = "/pushConfigNode";
 
 }
