@@ -20,7 +20,7 @@ public class ApplicationParam {
         if (appCode == null) {
             throw new IllegalArgumentException("应用编码不能为空");
         }
-        return appCode;
+        return appCode.trim();
     }
 
     public String getAppName() {

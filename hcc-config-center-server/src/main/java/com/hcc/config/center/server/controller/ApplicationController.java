@@ -130,7 +130,10 @@ public class ApplicationController {
 
     @GetMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {
-        this.checkApplicationExist(id);
+        ApplicationPo applicationPo = this.checkApplicationExist(id);
+        if (AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+            throw new IllegalArgumentException("应用已上线，无法删除");
+        }
         ApplicationConfigPo applicationConfigPo = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, id)
                 .last("LIMIT 1")

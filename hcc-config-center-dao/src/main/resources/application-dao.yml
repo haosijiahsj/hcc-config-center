@@ -15,4 +15,4 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     default-statement-timeout: 25000
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -22,6 +22,6 @@ public class ApplicationConfigParam {
         if (key == null) {
             throw new IllegalArgumentException("key不能为空");
         }
-        return key;
+        return key.trim();
     }
 }

@@ -69,7 +69,7 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
 
         PushConfigNodeDataVo nodeDataVo = JsonUtils.toObject(jsonData, PushConfigNodeDataVo.class);
         if (!NettyChannelManage.existAppCodeClient(nodeDataVo.getAppCode())) {
-            log.info("当前实例不存在appCode: [{}]的客户端连接！", nodeDataVo.getAppCode());
+            log.info("当前实例不存在appCode: [{}]的客户端连接，忽略！", nodeDataVo.getAppCode());
             return;
         }
 
