@@ -102,6 +102,22 @@ public class NettyChannelManage {
         }
     }
 
+    /**
+     * 当前实例是否存在appCode的客户端
+     * @param appCode
+     * @return
+     */
+    public static boolean existAppCodeClient(String appCode) {
+        for (Map.Entry<String, AppChannel> entry : clientIdChannelMap.entrySet()) {
+            AppChannel v = entry.getValue();
+            if (v.getAppCode().equals(appCode)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public synchronized static void sendMsgToApp(String appCode, PushConfigClientMsgVo msg) {
         for (Map.Entry<String, AppChannel> entry : clientIdChannelMap.entrySet()) {
             AppChannel v = entry.getValue();

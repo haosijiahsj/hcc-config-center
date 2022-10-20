@@ -25,7 +25,7 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         MsgInfo msgInfo = new MsgInfo();
-        msgInfo.setMsgType(MsgInfo.MsgType.INIT.getCode());
+        msgInfo.setMsgType(MsgInfo.MsgType.INIT.name());
         msgInfo.setAppCode(configCenterMsgHandler.getAppCode());
 
         // 上报appCode

@@ -20,17 +20,10 @@ public class MsgInfo {
     private Boolean forceUpdate;
 
     public enum MsgType {
-        INIT("init");
-
-        private final String code;
-
-        MsgType(String code) {
-            this.code = code;
-        }
-
-        public String getCode() {
-            return code;
-        }
+        INIT,
+        CONFIG_CREATE,
+        CONFIG_UPDATE,
+        CONFIG_DELETE
     }
 
 }

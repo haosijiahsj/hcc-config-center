@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-
 /**
  * ApplicationConfigController
  *
@@ -71,32 +69,8 @@ public class ApplicationConfigController {
     public void save(@RequestBody ApplicationConfigParam param) {
         ApplicationConfigPo applicationConfigPo = new ApplicationConfigPo();
         BeanUtils.copyProperties(param, applicationConfigPo);
-        LocalDateTime now = LocalDateTime.now();
-        applicationConfigPo.setUpdateTime(now);
-        if (param.getId() == null) {
-            ApplicationConfigPo existConfigPo = applicationConfigService.lambdaQuery()
-                    .eq(ApplicationConfigPo::getApplicationId, param.getApplicationId())
-                    .eq(ApplicationConfigPo::getKey, param.getKey())
-                    .one();
-            if (existConfigPo != null) {
-                throw new IllegalArgumentException(String.format("key: [%s]已存在", param.getKey()));
-            }
 
-            applicationConfigPo.setCreateTime(now);
-            applicationConfigPo.setVersion(1);
-
-            applicationConfigService.save(applicationConfigPo);
-        } else {
-            this.checkApplicationConfigExist(param.getId());
-
-            applicationConfigService.lambdaUpdate()
-                    .set(ApplicationConfigPo::getValue, param.getValue())
-                    .set(ApplicationConfigPo::getComment, param.getComment())
-                    .setSql("version = version + 1")
-                    .eq(ApplicationConfigPo::getId, param.getId())
-                    .update();
-        }
-        // TODO 记录历史
+        applicationConfigService.saveOrUpdateConfig(applicationConfigPo);
     }
 
     @PostMapping("/import")
@@ -107,13 +81,7 @@ public class ApplicationConfigController {
 
     @GetMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {
-        ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
-        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
-        applicationConfigService.removeById(id);
-
-        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
-            applicationConfigPushService.pushDeleteConfig(applicationPo.getAppCode(), applicationConfigPo.getKey());
-        }
+        applicationConfigPushService.pushDeletedConfig(id);
     }
 
     @GetMapping("/push/{id}")

@@ -8,8 +8,17 @@ package com.hcc.config.center.service;
  */
 public interface ApplicationConfigPushService {
 
+    /**
+     * 推送配置
+     * @param id
+     * @param forceUpdate
+     */
     void pushConfig(Long id, Boolean forceUpdate);
 
-    void pushDeleteConfig(String appCode, String key);
+    /**
+     * 推送已删除的配置
+     * @param id
+     */
+    void pushDeletedConfig(Long id);
 
 }

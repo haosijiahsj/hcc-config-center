@@ -68,6 +68,11 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         }
 
         PushConfigNodeDataVo nodeDataVo = JsonUtils.toObject(jsonData, PushConfigNodeDataVo.class);
+        if (!NettyChannelManage.existAppCodeClient(nodeDataVo.getAppCode())) {
+            log.info("当前实例不存在appCode: [{}]的客户端连接！", nodeDataVo.getAppCode());
+            return;
+        }
+
         PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
         BeanUtils.copyProperties(nodeDataVo, msgVo);
         if (TreeCacheEvent.Type.NODE_ADDED.equals(type)) {
@@ -76,6 +81,8 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
             msgVo.setMsgType(PushConfigMsgType.CONFIG_UPDATE.name());
         } else {
             msgVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
+            msgVo.setValue(null);
+            msgVo.setVersion(nodeDataVo.getVersion() + 1);
         }
 
         NettyChannelManage.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
@@ -119,7 +126,6 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
-//        this.startListener();
         this.startListener();
         log.info("zk path: {}启动监听成功", NodePathConstants.PUSH_CONFIG_PATH);
     }

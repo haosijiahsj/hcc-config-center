@@ -1,5 +1,6 @@
 package com.hcc.config.center.service.impl;
 
+import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.PushConfigNodeDataVo;
@@ -9,6 +10,7 @@ import com.hcc.config.center.service.ApplicationService;
 import com.hcc.config.center.service.zk.ZkHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * ApplicationConfigPushServiceImpl
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
  * @date 2022/10/19
  */
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushService {
 
     @Autowired
@@ -43,16 +46,36 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         nodeDataVo.setForceUpdate(true);
 
         zkHandler.addPushConfigNode(nodeDataVo);
+
+        // TODO 记录推送记录
     }
 
     @Override
-    public void pushDeleteConfig(String appCode, String key) {
-        PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
-        nodeDataVo.setAppCode(appCode);
-        nodeDataVo.setKey(key);
-        nodeDataVo.setForceUpdate(true);
+    public void pushDeletedConfig(Long id) {
+        ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
 
-        zkHandler.deletePushConfigNode(nodeDataVo);
+        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
+        applicationConfigService.removeById(id);
+
+        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+            PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
+            nodeDataVo.setAppCode(applicationPo.getAppCode());
+            nodeDataVo.setKey(applicationConfigPo.getKey());
+            nodeDataVo.setForceUpdate(true);
+
+            zkHandler.deletePushConfigNode(nodeDataVo);
+        }
+
+        // TODO 记录推送记录
+    }
+
+    private ApplicationConfigPo checkApplicationConfigExist(Long id) {
+        ApplicationConfigPo existApplicationConfigPo = applicationConfigService.getById(id);
+        if (existApplicationConfigPo == null) {
+            throw new IllegalArgumentException("配置不存在");
+        }
+
+        return existApplicationConfigPo;
     }
 
 }
