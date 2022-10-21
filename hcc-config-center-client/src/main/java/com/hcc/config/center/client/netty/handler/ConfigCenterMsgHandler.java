@@ -81,8 +81,9 @@ public class ConfigCenterMsgHandler {
                     field.setAccessible(true);
                     try {
                         field.set(bean, ConvertUtils.convertValueToTargetType(newValue, field.getType()));
+                        log.info("类：[{}]，字段：[{}]，key: [{}]，更新值：[{}]完成", bean.getClass().getName(), field.getName(), key, newValue);
                     } catch (Exception e) {
-                        log.error(String.format("更新字段：[%s]，key: [%s] value: [%s]异常！", field.getName(), key, newValue), e);
+                        log.error(String.format("类：[%s]，字段：[%s]，key: [%s]，更新值：[%s]异常！", bean.getClass().getName(), field.getName(), key, newValue), e);
                     }
                 }
             }
@@ -105,34 +106,35 @@ public class ConfigCenterMsgHandler {
 
         // 没有动态字段
         if (CollectionUtils.isEmpty(keyDynamicFieldInfo.get(key))) {
-            log.warn("key: [{}]没有字段引用", key);
+            log.warn("key: [{}]没有字段引用，忽略更新", key);
             return false;
         }
 
         // appCode不一致
         String curAppCode = configCenterContext.getAppCode();
         if (!curAppCode.equals(msgInfo.getAppCode())) {
-            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配", curAppCode, msgInfo.getAppCode());
+            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略更新", curAppCode, msgInfo.getAppCode());
             return false;
         }
 
         // 当前版本>=服务器版本 且 非强制更新 则不更新
         Integer curVersion = configCenterContext.getKeyVersion(key);
         if (curVersion != null && curVersion >= newVersion && !forceUpdate) {
-            log.warn("key: [{}]当前版本：[{}]大于或等于服务器版本：[{}]", key, curVersion, newVersion);
+            log.warn("key: [{}]当前版本：[{}]大于或等于服务器版本：[{}]，忽略更新", key, curVersion, newVersion);
             return false;
         }
 
+        String curValue = configCenterContext.getKeyValue(key);
+
+        // 本地值刷新一下
         AppConfigInfo appConfigInfo = configCenterContext.getKeyConfig(key);
         appConfigInfo.setValue(newValue);
         appConfigInfo.setVersion(newVersion);
-        // 本地值刷新一下
         configCenterContext.refreshConfigMap(key, appConfigInfo);
 
         // 当前值与下发值一致则不更新
-        String curValue = configCenterContext.getKeyValue(key);
         if (curValue != null && curValue.equals(newValue)) {
-            log.warn("key: [{}]当前值：[{}]等于服务器值：[{}]", key, curValue, newValue);
+            log.warn("key: [{}]当前值：[{}]等于服务器值：[{}]，忽略更新", key, curValue, newValue);
             return false;
         }
 

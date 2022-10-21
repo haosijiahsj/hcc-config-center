@@ -4,13 +4,13 @@ import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
-import com.hcc.config.center.server.config.IgnoreRestResult;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
 import com.hcc.config.center.service.zk.ZkHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,7 +21,6 @@ import java.util.List;
  * @author shengjun.hu
  * @date 2022/10/8
  */
-@IgnoreRestResult
 @RestController
 @RequestMapping
 public class ConfigCenterController {
@@ -36,7 +35,7 @@ public class ConfigCenterController {
     private ZkHandler zkHandler;
 
     @GetMapping("/get-app-config")
-    public List<ApplicationConfigPo> getAppConfig(String appCode, String secretKey) {
+    public List<ApplicationConfigPo> getAppConfig(@RequestParam String appCode, @RequestParam String secretKey) {
         ApplicationPo applicationPo = applicationService.lambdaQuery()
                 .eq(ApplicationPo::getAppCode, appCode)
                 .eq(ApplicationPo::getSecretKey, secretKey)

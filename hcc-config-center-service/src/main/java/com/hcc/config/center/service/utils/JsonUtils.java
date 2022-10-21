@@ -3,6 +3,7 @@ package com.hcc.config.center.service.utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
@@ -23,6 +24,7 @@ public class JsonUtils {
 
     static {
         OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
     }
 
     private JsonUtils() {}

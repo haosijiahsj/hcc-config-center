@@ -4,7 +4,6 @@ import com.hcc.config.center.client.constant.Constants;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +20,6 @@ import java.util.Map;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ConfigCenterContext {
 
     private String appCode;
@@ -38,12 +36,21 @@ public class ConfigCenterContext {
      * 配置中心获取配置地址
      * @return
      */
-    public String getConfigCenterUrl() {
+    public String getConfigCenterGetConfigUrl() {
+        return this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
+    }
+
+    public String getConfigCenterServerNodeUrl() {
+        return this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
+    }
+
+    private String getConfigCenterUrl() {
         String urlPlaceHolder = "%s";
         if (serverPort != null) {
             urlPlaceHolder = urlPlaceHolder + ":" + serverPort;
         }
-        return String.format(urlPlaceHolder + Constants.APP_CONFIG_URI, serverUrl);
+
+        return String.format(urlPlaceHolder, serverUrl);
     }
 
     /**
@@ -62,13 +69,13 @@ public class ConfigCenterContext {
      * @return
      */
     private List<AppConfigInfo> getConfigFromConfigCenter() {
-        String configCenterUrl = this.getConfigCenterUrl();
+        String configCenterUrl = this.getConfigCenterGetConfigUrl();
 
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("appCode", appCode);
         paramMap.put("secretKey", secretKey);
 
-        return RestTemplateUtils.getList(configCenterUrl, paramMap);
+        return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
     }
 
     public synchronized void addDynamicFieldInfo(DynamicFieldInfo dynamicFieldInfo) {

@@ -1,14 +1,11 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.constant.Constants;
 import com.hcc.config.center.client.context.ConfigCenterContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.netty.ConfigCenterClient;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -22,13 +19,12 @@ import java.util.Map;
  * @date 2022/10/13
  */
 @Slf4j
-public abstract class AbstractConfigCenterListener<T extends ApplicationEvent> implements ApplicationListener<T> {
+public class ConfigCenterListener {
 
     @Autowired
     private ConfigCenterContext configCenterContext;
 
-    @Override
-    public void onApplicationEvent(T contextStartedEvent) {
+    public void start() {
         if (!configCenterContext.isEnableDynamicPush()) {
             log.info("未开启动态推送开关，无法启动配置中心客户端");
             return;
@@ -44,7 +40,7 @@ public abstract class AbstractConfigCenterListener<T extends ApplicationEvent> i
         configCenterClient.setHost(serverNode.getHost());
         configCenterClient.setPort(serverNode.getPort());
 
-        configCenterClient.startUp();
+        new Thread(configCenterClient::startUp).start();
     }
 
     /**
@@ -53,12 +49,12 @@ public abstract class AbstractConfigCenterListener<T extends ApplicationEvent> i
      * @return
      */
     private ServerNodeInfo findServerNode(ConfigCenterContext configCenterContext) {
-        String serverNodeUrl = configCenterContext.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
+        String serverNodeUrl = configCenterContext.getConfigCenterServerNodeUrl();
 
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("appCode", configCenterContext.getAppCode());
         paramMap.put("secretKey", configCenterContext.getSecretKey());
-        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getList(serverNodeUrl, paramMap);
+        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getServerNode(serverNodeUrl, paramMap);
         if (CollectionUtils.isEmpty(serverNodeInfos)) {
             return null;
         }
@@ -77,7 +73,9 @@ public abstract class AbstractConfigCenterListener<T extends ApplicationEvent> i
      * @return
      */
     protected ServerNodeInfo chooseServerNode(ConfigCenterContext configCenterContext, List<ServerNodeInfo> serverNodeInfos) {
-        return null;
+        int size = serverNodeInfos.size();
+        int index = configCenterContext.getAppCode().hashCode() % size;
+        return serverNodeInfos.get(index);
     }
 
 }

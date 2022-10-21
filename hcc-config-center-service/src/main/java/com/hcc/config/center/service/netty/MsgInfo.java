@@ -15,17 +15,7 @@ public class MsgInfo {
     private String appCode;
 
     public enum MsgType {
-        INIT("init");
-
-        private String code;
-
-        MsgType(String code) {
-            this.code = code;
-        }
-
-        public String getCode() {
-            return code;
-        }
+        INIT
     }
 
 }

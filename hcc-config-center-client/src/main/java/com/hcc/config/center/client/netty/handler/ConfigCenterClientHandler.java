@@ -29,7 +29,8 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
         msgInfo.setAppCode(configCenterMsgHandler.getAppCode());
 
         // 上报appCode
-        ctx.writeAndFlush(convertByteBuf(JsonUtils.toJson(msgInfo)));
+        ctx.writeAndFlush(this.convertByteBuf(JsonUtils.toJson(msgInfo)));
+        log.info("连接推送服务器：{}成功", ctx.channel().remoteAddress());
     }
 
     @Override
@@ -39,6 +40,8 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
             return;
         }
 
+        log.info("收到推送消息：[{}]", msg);
+
         MsgInfo msgInfo = JsonUtils.toObject(msg, MsgInfo.class);
         configCenterMsgHandler.addMsgToQueue(msgInfo);
     }
@@ -46,6 +49,11 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        // TODO 断线重连
     }
 
     private String readByteBuf(ByteBuf byteBuf) {
@@ -59,7 +67,7 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
         return new String(buffer, CharsetUtil.UTF_8);
     }
 
-    private static ByteBuf convertByteBuf(String msg) {
+    private ByteBuf convertByteBuf(String msg) {
         return Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8);
     }
 

@@ -27,7 +27,7 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteB
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
         String json = this.readByteBuf(msg);
         MsgInfo msgInfo = JsonUtils.toObject(json, MsgInfo.class);
-        if (MsgInfo.MsgType.INIT.getCode().equals(msgInfo.getMsgType())) {
+        if (MsgInfo.MsgType.INIT.name().equals(msgInfo.getMsgType())) {
             NettyChannelManage.addAppChannelRelation(msgInfo.getAppCode(), ctx.channel());
         }
     }
@@ -40,6 +40,7 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteB
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         NettyChannelManage.removeChannel(ctx.channel());
+        log.error("连接异常", cause);
     }
 
     private String readByteBuf(ByteBuf byteBuf) {

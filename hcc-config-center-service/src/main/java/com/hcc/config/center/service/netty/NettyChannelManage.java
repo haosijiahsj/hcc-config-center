@@ -53,6 +53,8 @@ public class NettyChannelManage {
         channel.attr(AttributeKey.valueOf(CLIENT_ID)).setIfAbsent(uuid);
 
         channelGroup.add(channel);
+
+        log.info("客户端ip: {}连接到服务器！", channel.remoteAddress());
     }
 
     public synchronized static void removeChannel(Channel channel) {
@@ -64,7 +66,7 @@ public class NettyChannelManage {
     }
 
     public synchronized static void addAppChannelRelation(String appCode, Channel channel) {
-        String clientId = getClientId(channel);
+        String clientId = appCode + "_" + getClientId(channel);
         AppChannel appChannel = new AppChannel();
         appChannel.setClientId(clientId);
         appChannel.setAppCode(appCode);

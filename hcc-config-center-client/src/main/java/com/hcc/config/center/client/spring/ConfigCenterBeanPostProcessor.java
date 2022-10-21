@@ -6,6 +6,7 @@ import com.hcc.config.center.client.context.ConfigCenterContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.utils.ConvertUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import java.util.Map;
  * @author shengjun.hu
  * @date 2022/10/8
  */
+@Slf4j
 public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
 
     @Autowired
@@ -30,8 +32,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] declaredFields = bean.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
-            StaticValue staticValue = AnnotationUtils.findAnnotation(field.getType(), StaticValue.class);
-            DynamicValue dynamicValue = AnnotationUtils.findAnnotation(field.getType(), DynamicValue.class);
+            StaticValue staticValue = field.getAnnotation(StaticValue.class);
+            DynamicValue dynamicValue = field.getAnnotation(DynamicValue.class);
             if (staticValue == null && dynamicValue == null) {
                 continue;
             }
@@ -68,6 +70,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(e);
         }
+        log.info("类：[{}]，字段：[{}]，key: [{}]，注入值：[{}]完成", bean.getClass().getName(), field.getName(), configKey, configValue);
     }
 
     /**
