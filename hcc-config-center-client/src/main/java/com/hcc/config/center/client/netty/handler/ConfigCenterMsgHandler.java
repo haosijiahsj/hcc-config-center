@@ -69,18 +69,24 @@ public class ConfigCenterMsgHandler {
                     Integer dynCurVersion = dynamicFieldInfo.getVersion();
                     String dynCurValue = dynamicFieldInfo.getValue();
                     if (dynCurVersion != null && dynCurVersion >= newVersion && !forceUpdate) {
+                        log.info("类：[{}]，字段：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略更新",
+                                bean.getClass().getName(), field.getName(), key, newValue, dynCurVersion, newVersion);
+                        dynamicFieldInfo.setVersion(newVersion);
                         continue;
                     }
 
-                    dynamicFieldInfo.setVersion(newVersion);
                     if (dynCurValue != null && dynCurValue.equals(newValue)) {
+                        log.info("类：[{}]，字段：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略更新",
+                                bean.getClass().getName(), field.getName(), key, dynCurValue, newValue);
                         continue;
                     }
-                    dynamicFieldInfo.setValue(newValue);
 
-                    field.setAccessible(true);
                     try {
+                        field.setAccessible(true);
                         field.set(bean, ConvertUtils.convertValueToTargetType(newValue, field.getType()));
+
+                        dynamicFieldInfo.setVersion(newVersion);
+                        dynamicFieldInfo.setValue(newValue);
                         log.info("类：[{}]，字段：[{}]，key: [{}]，更新值：[{}]完成", bean.getClass().getName(), field.getName(), key, newValue);
                     } catch (Exception e) {
                         log.error(String.format("类：[%s]，字段：[%s]，key: [%s]，更新值：[%s]异常！", bean.getClass().getName(), field.getName(), key, newValue), e);
@@ -89,8 +95,7 @@ public class ConfigCenterMsgHandler {
             }
         };
 
-        Thread thread = new Thread(runnable, "config-center-refresh-");
-        thread.start();
+        new Thread(runnable, "value-refresh").start();
     }
 
     /**
@@ -102,7 +107,12 @@ public class ConfigCenterMsgHandler {
         String key = msgInfo.getKey();
         String newValue = msgInfo.getValue();
         Integer newVersion = msgInfo.getVersion();
-        Boolean forceUpdate = msgInfo.getForceUpdate();
+
+        // 本地值刷新
+        AppConfigInfo appConfigInfo = configCenterContext.getKeyConfig(key);
+        appConfigInfo.setValue(newValue);
+        appConfigInfo.setVersion(newVersion);
+        configCenterContext.refreshConfigMap(key, appConfigInfo);
 
         // 没有动态字段
         if (CollectionUtils.isEmpty(keyDynamicFieldInfo.get(key))) {
@@ -114,27 +124,6 @@ public class ConfigCenterMsgHandler {
         String curAppCode = configCenterContext.getAppCode();
         if (!curAppCode.equals(msgInfo.getAppCode())) {
             log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略更新", curAppCode, msgInfo.getAppCode());
-            return false;
-        }
-
-        // 当前版本>=服务器版本 且 非强制更新 则不更新
-        Integer curVersion = configCenterContext.getKeyVersion(key);
-        if (curVersion != null && curVersion >= newVersion && !forceUpdate) {
-            log.warn("key: [{}]当前版本：[{}]大于或等于服务器版本：[{}]，忽略更新", key, curVersion, newVersion);
-            return false;
-        }
-
-        String curValue = configCenterContext.getKeyValue(key);
-
-        // 本地值刷新一下
-        AppConfigInfo appConfigInfo = configCenterContext.getKeyConfig(key);
-        appConfigInfo.setValue(newValue);
-        appConfigInfo.setVersion(newVersion);
-        configCenterContext.refreshConfigMap(key, appConfigInfo);
-
-        // 当前值与下发值一致则不更新
-        if (curValue != null && curValue.equals(newValue)) {
-            log.warn("key: [{}]当前值：[{}]等于服务器值：[{}]，忽略更新", key, curValue, newValue);
             return false;
         }
 

@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,6 +21,7 @@ import java.net.UnknownHostException;
  * @date 2022/10/6
  */
 @Slf4j
+@EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.hcc.config.center")
 public class HccConfigCenterApplication implements ApplicationListener<ApplicationStartedEvent> {
 
