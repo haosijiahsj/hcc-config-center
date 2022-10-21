@@ -13,8 +13,8 @@ import java.util.List;
 @Data
 public class PushConfigNodeDataVo {
 
-    private Long applicationConfigId;
-    private List<String> clientId;
+    private String msgType;
+    private List<String> clientIds;
     private String appCode;
     private String key;
     private String value;

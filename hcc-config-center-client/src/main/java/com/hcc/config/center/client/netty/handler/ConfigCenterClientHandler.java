@@ -48,7 +48,7 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-
+        log.error("连接发生异常", cause);
     }
 
     @Override

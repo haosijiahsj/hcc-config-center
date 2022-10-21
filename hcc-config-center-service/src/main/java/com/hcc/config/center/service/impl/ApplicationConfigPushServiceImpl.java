@@ -1,6 +1,7 @@
 package com.hcc.config.center.service.impl;
 
 import com.hcc.config.center.domain.enums.AppStatusEnum;
+import com.hcc.config.center.domain.enums.PushConfigMsgType;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.PushConfigNodeDataVo;
@@ -37,7 +38,6 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
 
         PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
-        nodeDataVo.setApplicationConfigId(id);
         nodeDataVo.setAppCode(applicationPo.getAppCode());
         nodeDataVo.setKey(applicationConfigPo.getKey());
         nodeDataVo.setValue(applicationConfigPo.getValue());
@@ -59,11 +59,14 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
 
         if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
             PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
+            nodeDataVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
             nodeDataVo.setAppCode(applicationPo.getAppCode());
             nodeDataVo.setKey(applicationConfigPo.getKey());
+            nodeDataVo.setValue(null);
+            nodeDataVo.setVersion(applicationConfigPo.getVersion() + 1);
             nodeDataVo.setForceUpdate(true);
 
-            zkHandler.deletePushConfigNode(nodeDataVo);
+            zkHandler.addPushConfigNode(nodeDataVo);
         }
 
         // TODO 记录推送记录

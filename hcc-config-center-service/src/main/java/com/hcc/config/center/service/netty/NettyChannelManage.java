@@ -82,12 +82,12 @@ public class NettyChannelManage {
         return Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8);
     }
 
-    public synchronized static void sendMsg(String clientId, String msg) {
+    public synchronized static void sendMsg(String clientId, PushConfigClientMsgVo msg) {
         AppChannel appChannel = clientIdChannelMap.get(clientId);
         if (appChannel == null) {
             return;
         }
-        appChannel.getChannel().writeAndFlush(convertByteBuf(msg));
+        appChannel.getChannel().writeAndFlush(convertByteBuf(JsonUtils.toJson(msg)));
 
         log.info("客户端：{}，消息: {}发送成功！", clientId, msg);
     }

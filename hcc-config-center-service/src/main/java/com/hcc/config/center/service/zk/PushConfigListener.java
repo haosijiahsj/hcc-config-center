@@ -1,5 +1,6 @@
 package com.hcc.config.center.service.zk;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hcc.config.center.domain.constants.NodePathConstants;
 import com.hcc.config.center.domain.enums.PushConfigMsgType;
@@ -45,11 +46,10 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
                     }
 
                     if (TreeCacheEvent.Type.NODE_ADDED.equals(type)
-                            || TreeCacheEvent.Type.NODE_UPDATED.equals(type)
-                            || TreeCacheEvent.Type.NODE_REMOVED.equals(type)) {
+                            || TreeCacheEvent.Type.NODE_UPDATED.equals(type)) {
                         String jsonData = new String(event.getData().getData());
                         log.info("节点{}变化，变化类型：{}，值：{}", path, type, jsonData);
-                        this.pushToClient(path, type, jsonData);
+                        this.pushToClient(path, jsonData);
                     } else {
                         log.info("节点{}变化，变化类型：{}，忽略", path, type);
                     }
@@ -61,7 +61,7 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         }
     }
 
-    private void pushToClient(String path, TreeCacheEvent.Type type, String jsonData) {
+    private void pushToClient(String path, String jsonData) {
         if (StrUtil.isEmpty(jsonData)) {
             log.info("节点：{}值为空，忽略！", path);
             return;
@@ -73,19 +73,20 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
             return;
         }
 
-        PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
-        BeanUtils.copyProperties(nodeDataVo, msgVo);
-        if (TreeCacheEvent.Type.NODE_ADDED.equals(type)) {
-            msgVo.setMsgType(PushConfigMsgType.CONFIG_CREATE.name());
-        } else if (TreeCacheEvent.Type.NODE_UPDATED.equals(type)) {
-            msgVo.setMsgType(PushConfigMsgType.CONFIG_UPDATE.name());
-        } else {
-            msgVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
-            msgVo.setValue(null);
-            msgVo.setVersion(nodeDataVo.getVersion() + 1);
-        }
+        if (CollUtil.isNotEmpty(nodeDataVo.getClientIds())) {
+            for (String clientId : nodeDataVo.getClientIds()) {
+                PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
+                BeanUtils.copyProperties(nodeDataVo, msgVo);
+                msgVo.setClientId(clientId);
 
-        NettyChannelManage.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
+                NettyChannelManage.sendMsg(clientId, msgVo);
+            }
+        } else {
+            PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
+            BeanUtils.copyProperties(nodeDataVo, msgVo);
+
+            NettyChannelManage.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
+        }
     }
 
 //    private void startListener() {

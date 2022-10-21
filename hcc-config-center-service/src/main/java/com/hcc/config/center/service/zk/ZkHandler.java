@@ -1,6 +1,7 @@
 package com.hcc.config.center.service.zk;
 
 import com.hcc.config.center.domain.constants.NodePathConstants;
+import com.hcc.config.center.domain.enums.PushConfigMsgType;
 import com.hcc.config.center.domain.vo.PushConfigNodeDataVo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
 import com.hcc.config.center.service.utils.JsonUtils;
@@ -34,9 +35,13 @@ public class ZkHandler {
      */
     public synchronized void addPushConfigNode(PushConfigNodeDataVo nodeData) {
         String path = this.buildPushConfigPath(nodeData.getAppCode(), nodeData.getKey());
-        String data = JsonUtils.toJson(nodeData);
         try {
             Stat stat = curatorFramework.checkExists().forPath(path);
+
+            if (nodeData.getMsgType() == null) {
+                nodeData.setMsgType(stat == null ? PushConfigMsgType.CONFIG_CREATE.name() : PushConfigMsgType.CONFIG_UPDATE.name());
+            }
+            String data = JsonUtils.toJson(nodeData);
             if (stat == null) {
                 curatorFramework.create()
                         .creatingParentsIfNeeded()
