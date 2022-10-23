@@ -39,8 +39,9 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteB
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        NettyChannelManage.removeChannel(ctx.channel());
-        log.error("连接异常", cause);
+//        NettyChannelManage.removeChannel(ctx.channel());
+        log.error("客户端：{}，连接异常关闭！", ctx.channel().remoteAddress());
+        ctx.channel().close();
     }
 
     private String readByteBuf(ByteBuf byteBuf) {

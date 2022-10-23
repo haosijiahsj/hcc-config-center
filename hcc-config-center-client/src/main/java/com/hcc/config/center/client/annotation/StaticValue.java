@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 动态刷新
+ * 静态值注入，仅在启动时注入一次
  *
  * @author hushengjun
  * @date 2022/10/6

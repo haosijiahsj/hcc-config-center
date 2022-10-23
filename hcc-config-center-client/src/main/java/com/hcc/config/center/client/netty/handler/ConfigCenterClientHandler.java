@@ -1,6 +1,7 @@
 package com.hcc.config.center.client.netty.handler;
 
 import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.netty.ConfigCenterMsgProcessor;
 import com.hcc.config.center.client.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -20,17 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
-    private final ConfigCenterMsgHandler configCenterMsgHandler;
+    private final ConfigCenterMsgProcessor configCenterMsgProcessor;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         MsgInfo msgInfo = new MsgInfo();
         msgInfo.setMsgType(MsgInfo.MsgType.INIT.name());
-        msgInfo.setAppCode(configCenterMsgHandler.getAppCode());
+        msgInfo.setAppCode(configCenterMsgProcessor.getAppCode());
 
         // 上报appCode
         ctx.writeAndFlush(this.convertByteBuf(JsonUtils.toJson(msgInfo)));
-        log.info("连接推送服务器：{}成功", ctx.channel().remoteAddress());
     }
 
     @Override
@@ -43,17 +43,16 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
         log.info("收到推送消息：[{}]", msg);
 
         MsgInfo msgInfo = JsonUtils.toObject(msg, MsgInfo.class);
-        configCenterMsgHandler.addMsgToQueue(msgInfo);
+        configCenterMsgProcessor.addMsgToQueue(msgInfo);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("连接发生异常", cause);
+        ctx.channel().close();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // TODO 断线重连
     }
 
     private String readByteBuf(ByteBuf byteBuf) {

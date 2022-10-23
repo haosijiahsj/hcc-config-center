@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * EnableConfigCenter
+ * 启用配置注解
  *
  * @author hushengjun
  * @date 2022/10/14

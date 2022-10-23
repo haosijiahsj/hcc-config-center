@@ -81,7 +81,13 @@ public class ApplicationConfigController {
 
     @GetMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {
-        applicationConfigPushService.pushDeletedConfig(id);
+        ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
+        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
+        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+            applicationConfigPushService.pushDeletedConfig(id);
+        } else {
+            applicationConfigService.removeById(id);
+        }
     }
 
     @GetMapping("/push/{id}")

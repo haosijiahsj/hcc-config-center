@@ -16,7 +16,6 @@ public class AutoPushConfigTask {
 
     @Scheduled(cron = "*/15 * * * * ?")
     public void execute() {
-        log.info("执行了");
     }
 
 }

@@ -73,6 +73,8 @@ public class NettyChannelManage {
         appChannel.setIp(channel.remoteAddress().toString());
         appChannel.setChannel(channel);
 
+        channel.attr(AttributeKey.valueOf(CLIENT_ID)).set(clientId);
+
         clientIdChannelMap.put(clientId, appChannel);
 
         log.info("客户端：{}，appCode: {}初始化成功！", clientId, appCode);

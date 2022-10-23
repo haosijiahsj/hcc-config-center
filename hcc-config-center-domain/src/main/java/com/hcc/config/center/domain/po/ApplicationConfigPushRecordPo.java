@@ -9,14 +9,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 配置修改记录
+ * ApplicationConfigPushRecordPo
  *
  * @author hushengjun
- * @date 2022/10/6
+ * @date 2022/10/21
  */
 @Data
-@TableName("application_config_history")
-public class ApplicationConfigHistoryPo {
+@TableName("application_config_push_record")
+public class ApplicationConfigPushRecordPo {
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -24,7 +24,6 @@ public class ApplicationConfigHistoryPo {
     @TableField("_value")
     private String value;
     private Integer version;
-    private String operateType;
     private LocalDateTime createTime;
 
 }

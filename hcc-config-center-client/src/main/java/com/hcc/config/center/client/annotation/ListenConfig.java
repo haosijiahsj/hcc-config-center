@@ -6,14 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 动态刷新注解
+ * 监听配置值变更，作用于方法
  *
  * @author hushengjun
- * @date 2022/10/6
+ * @date 2022/10/21
  */
-@Target(ElementType.FIELD)
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DynamicValue {
+public @interface ListenConfig {
 
     String value();
 

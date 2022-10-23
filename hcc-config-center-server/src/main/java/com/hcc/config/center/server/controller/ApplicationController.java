@@ -60,6 +60,8 @@ public class ApplicationController {
     public List<ApplicationVo> all() {
         List<ApplicationPo> applicationPos = applicationService.lambdaQuery()
                 .in(ApplicationPo::getAppStatus, Arrays.asList(AppStatusEnum.ONLINE.name(), AppStatusEnum.OFFLINE.name()))
+                .orderByDesc(ApplicationPo::getUpdateTime)
+                .orderByDesc(ApplicationPo::getId)
                 .list();
         if (CollectionUtil.isEmpty(applicationPos)) {
             return Collections.emptyList();
