@@ -1,7 +1,9 @@
 package com.hcc.config.center.client.context;
 
-import com.hcc.config.center.client.constant.Constants;
 import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.entity.AppInfo;
+import com.hcc.config.center.client.entity.AppMode;
+import com.hcc.config.center.client.entity.Constants;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.entity.ListenConfigMethodInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
@@ -9,12 +11,10 @@ import com.hcc.config.center.client.utils.ConvertUtils;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,35 +27,30 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@NoArgsConstructor
 public class ConfigContext {
 
+    /**
+     * 基本配置
+     */
     private String appCode;
     private String secretKey;
     private String serverUrl;
     private boolean enableDynamicPush = false;
+    /**
+     * 拉取时间间隔，默认5分钟
+     */
+    private Integer pullInterval = 300;
+
+    /**
+     * 模式：推 OR 拉
+     */
+    private String appMode;
 
     private Map<String, AppConfigInfo> configMap = new HashMap<>();
     private Map<String, String> configKeyValueMap = new HashMap<>();
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
     private List<DynamicFieldInfo> dynamicFieldInfos = new ArrayList<>();
     private List<ListenConfigMethodInfo> listenConfigMethodInfos = new ArrayList<>();
-
-    /**
-     * 配置中心获取配置地址
-     * @return
-     */
-    public String getConfigCenterGetConfigUrl() {
-        return this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
-    }
-
-    /**
-     * 配置中心获取服务节点地址
-     * @return
-     */
-    public String getConfigCenterServerNodeUrl() {
-        return this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
-    }
 
     /**
      * 配置中心url
@@ -71,7 +66,7 @@ public class ConfigContext {
             return serverUrl;
         }
 
-        String envServerUrl = System.getenv("configCenterServerUrl");
+        String envServerUrl = System.getenv("CONFIG_CENTER_SERVER_URL");
         if (envServerUrl != null) {
             return envServerUrl;
         }
@@ -96,12 +91,42 @@ public class ConfigContext {
                 staticConfigMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
             }
         });
-        this.refreshServerNode();
+        this.getModeFromConfigCenter();
+        if (AppMode.PUSH.name().equals(appMode)) {
+            this.refreshServerNode();
+        }
 
         // 打印所有配置信息
         log.info("静态配置：\n{}", JsonUtils.toJsonForBeauty(staticConfigMap));
         log.info("动态配置：\n{}", JsonUtils.toJsonForBeauty(dynamicConfigMap));
-        log.info("服务节点：\n{}", JsonUtils.toJsonForBeauty(this.serverNodeInfos));
+        if (AppMode.PUSH.name().equals(appMode)) {
+            log.info("服务节点：\n{}", JsonUtils.toJsonForBeauty(this.serverNodeInfos));
+        }
+    }
+
+    /**
+     * 请求参数
+     * @return
+     */
+    private Map<String, Object> reqParamMap() {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("appCode", appCode);
+        paramMap.put("secretKey", secretKey);
+
+        return paramMap;
+    }
+
+    /**
+     * 获取应用mode
+     */
+    private void getModeFromConfigCenter() {
+        AppInfo appInfo = RestTemplateUtils.getAppInfo(this.getConfigCenterUrl() + Constants.APP_INFO_URI,
+                this.reqParamMap());
+        if (appInfo == null) {
+            throw new IllegalStateException(String.format("未获取到应用：%s", appCode));
+        }
+
+        this.appMode = appInfo.getAppMode();
     }
 
     /**
@@ -109,11 +134,20 @@ public class ConfigContext {
      * @return
      */
     private List<AppConfigInfo> getConfigFromConfigCenter() {
-        String configCenterUrl = this.getConfigCenterGetConfigUrl();
+        String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
 
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("appCode", appCode);
-        paramMap.put("secretKey", secretKey);
+        return RestTemplateUtils.getAppConfig(configCenterUrl, this.reqParamMap());
+    }
+
+    /**
+     * 从配置中心获取动态配置
+     * @return
+     */
+    public List<AppConfigInfo> getDynamicConfigFromConfigCenter() {
+        String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
+
+        Map<String, Object> paramMap = this.reqParamMap();
+        paramMap.put("dynamic", true);
 
         return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
     }
@@ -123,12 +157,9 @@ public class ConfigContext {
      * @return
      */
     public void refreshServerNode() {
-        String serverNodeUrl = this.getConfigCenterServerNodeUrl();
+        String serverNodeUrl = this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
 
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("appCode", appCode);
-        paramMap.put("secretKey", secretKey);
-        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getServerNode(serverNodeUrl, paramMap);
+        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getServerNode(serverNodeUrl, this.reqParamMap());
         if (!CollectionUtils.isEmpty(serverNodeInfos)) {
             this.serverNodeInfos = serverNodeInfos;
         }

@@ -2,8 +2,7 @@ package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.ProcessFailedCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.netty.handler.ConfigCenterClientHandler;
-import com.hcc.config.center.client.netty.handler.ConfigCenterIdleStateHandler;
+import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

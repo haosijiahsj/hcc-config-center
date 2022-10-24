@@ -1,4 +1,4 @@
-package com.hcc.config.center.client.netty.handler;
+package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.connect.DefaultServerNodeChooser;
 import com.hcc.config.center.client.connect.ServerNodeChooser;
@@ -17,7 +17,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ConfigCenterIdleStateHandler
+ * 在次实现了重连
  *
  * @author hushengjun
  * @date 2022/10/22
@@ -25,19 +25,15 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ConfigCenterIdleStateHandler extends IdleStateHandler {
 
-    private ConfigContext configContext;
-    private ServerNodeChooser serverNodeChooser;
-    private ConfigCenterClient configCenterClient;
+    private final ConfigContext configContext;
+    private final ServerNodeChooser serverNodeChooser;
+    private final ConfigCenterClient configCenterClient;
 
     public ConfigCenterIdleStateHandler(ConfigContext configContext, ConfigCenterClient configCenterClient) {
-        this(10, 10, 30, TimeUnit.SECONDS);
+        super(10, 10, 30, TimeUnit.SECONDS);
         this.configContext = configContext;
         this.serverNodeChooser = new DefaultServerNodeChooser();
         this.configCenterClient = configCenterClient;
-    }
-
-    public ConfigCenterIdleStateHandler(long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit) {
-        super(readerIdleTime, writerIdleTime, allIdleTime, unit);
     }
 
     @Override

@@ -17,6 +17,7 @@ public class ApplicationVo extends BaseVo {
     private String appCode;
     private String appName;
     private String secretKey;
+    private String appMode;
     private String appStatus;
     private String owner;
 

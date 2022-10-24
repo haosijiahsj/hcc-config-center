@@ -1,7 +1,7 @@
-package com.hcc.config.center.client.netty.handler;
+package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.entity.MsgInfo;
-import com.hcc.config.center.client.netty.ConfigCenterMsgProcessor;
+import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import com.hcc.config.center.client.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

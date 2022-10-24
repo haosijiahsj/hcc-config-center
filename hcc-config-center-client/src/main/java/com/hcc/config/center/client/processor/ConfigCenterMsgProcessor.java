@@ -1,4 +1,4 @@
-package com.hcc.config.center.client.netty;
+package com.hcc.config.center.client.processor;
 
 import com.hcc.config.center.client.ProcessFailedCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
@@ -21,7 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
- * ConfigCenterMsgHandler
+ * 配置中心消息处理器
  *
  * @author shengjun.hu
  * @date 2022/10/13
@@ -118,7 +118,7 @@ public class ConfigCenterMsgProcessor {
             return;
         }
 
-        if (dynCurValue != null && dynCurValue.equals(newValue)) {
+        if ((dynCurValue == null && newValue == null) || (dynCurValue != null && dynCurValue.equals(newValue))) {
             log.info("类：[{}]，字段：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略更新",
                     bean.getClass().getName(), field.getName(), key, dynCurValue, newValue);
             return;
@@ -167,7 +167,7 @@ public class ConfigCenterMsgProcessor {
             return;
         }
 
-        if (dynCurValue != null && dynCurValue.equals(newValue)) {
+        if ((dynCurValue == null && newValue == null) || (dynCurValue != null && dynCurValue.equals(newValue))) {
             log.info("类：[{}]，方法：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略调用",
                     bean.getClass().getName(), method.getName(), key, dynCurValue, newValue);
             return;
@@ -202,22 +202,24 @@ public class ConfigCenterMsgProcessor {
         String newValue = msgInfo.getValue();
         Integer newVersion = msgInfo.getVersion();
 
-        // 本地值刷新
-        AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
-        if (appConfigInfo == null) {
-            appConfigInfo = new AppConfigInfo();
-            appConfigInfo.setKey(key);
-            appConfigInfo.setDynamic(true);
-        }
-        appConfigInfo.setValue(newValue);
-        appConfigInfo.setVersion(newVersion);
-        configContext.refreshConfigMap(key, appConfigInfo);
-
         // appCode不一致
         String curAppCode = configContext.getAppCode();
         if (!curAppCode.equals(msgInfo.getAppCode())) {
             log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略更新", curAppCode, msgInfo.getAppCode());
             return false;
+        }
+
+        // 本地值刷新
+        AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
+        if (appConfigInfo == null || appConfigInfo.getVersion() < newVersion) {
+            if (appConfigInfo == null) {
+                appConfigInfo = new AppConfigInfo();
+                appConfigInfo.setKey(key);
+                appConfigInfo.setDynamic(true);
+            }
+            appConfigInfo.setValue(newValue);
+            appConfigInfo.setVersion(newVersion);
+            configContext.refreshConfigMap(key, appConfigInfo);
         }
 
         return true;

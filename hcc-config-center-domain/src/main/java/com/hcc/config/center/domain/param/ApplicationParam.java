@@ -14,6 +14,7 @@ public class ApplicationParam {
     private Long id;
     private String appCode;
     private String appName;
+    private String appMode;
     private String owner;
 
     public String getAppCode() {

@@ -3,6 +3,7 @@ package com.hcc.config.center.server.controller;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hcc.config.center.domain.enums.AppMode;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.param.ApplicationParam;
 import com.hcc.config.center.domain.param.ApplicationQueryParam;
@@ -107,6 +108,9 @@ public class ApplicationController {
             String secretKey = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
             applicationPo.setSecretKey(secretKey);
             applicationPo.setAppStatus(AppStatusEnum.NOT_ONLINE.name());
+            if (param.getAppMode() == null) {
+                applicationPo.setAppMode(AppMode.PUSH.name());
+            }
             applicationPo.setCreateTime(now);
 
             applicationService.save(applicationPo);

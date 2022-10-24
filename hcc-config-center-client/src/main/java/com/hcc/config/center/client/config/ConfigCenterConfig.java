@@ -4,7 +4,7 @@ import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.ProcessFailedCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.spring.ConfigCenterBeanPostProcessor;
-import com.hcc.config.center.client.spring.ConfigCenterListener;
+import com.hcc.config.center.client.spring.ConfigCenterClientInitializer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,12 +31,16 @@ public class ConfigCenterConfig {
         String secretKey = environment.getRequiredProperty("config.center.secretKey");
         String serverUrl = environment.getRequiredProperty("config.center.serverUrl");
         Boolean enableDynamicPush = environment.getProperty("config.center.enableDynamicPush", Boolean.class);
+        Integer pullInterval = environment.getProperty("config.center.pullInterval", Integer.class);
 
         configContext.setAppCode(appCode);
         configContext.setSecretKey(secretKey);
         configContext.setServerUrl(serverUrl);
         if (enableDynamicPush != null) {
             configContext.setEnableDynamicPush(enableDynamicPush);
+        }
+        if (pullInterval != null) {
+            configContext.setPullInterval(pullInterval);
         }
         configContext.initContext();
 
@@ -70,12 +74,12 @@ public class ConfigCenterConfig {
      * @return
      */
     @Bean
-    public ConfigCenterListener configCenterListener(ConfigContext configContext, ObjectProvider<ProcessFailedCallBack> callBackObjectProvider) {
+    public ConfigCenterClientInitializer configCenterClientInitializer(ConfigContext configContext, ObjectProvider<ProcessFailedCallBack> callBackObjectProvider) {
         ProcessFailedCallBack callBack = callBackObjectProvider.getIfUnique(() -> new ProcessFailedCallBack() {});
-        ConfigCenterListener listener = new ConfigCenterListener(configContext, callBack);
-        listener.start();
+        ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack);
+        initializer.startClient();
 
-        return listener;
+        return initializer;
     }
 
 }

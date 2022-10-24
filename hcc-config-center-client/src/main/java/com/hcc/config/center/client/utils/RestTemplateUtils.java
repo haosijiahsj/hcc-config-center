@@ -2,6 +2,7 @@ package com.hcc.config.center.client.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.RestResult;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,18 @@ public class RestTemplateUtils {
             throw new IllegalStateException("服务异常！");
         }
         return responseEntity.getBody();
+    }
+
+    public static AppInfo getAppInfo(String url, Map<String, Object> paramMap) {
+        String body = getString(url, paramMap);
+
+        RestResult<AppInfo> result = JsonUtils.toObject(body, new TypeReference<RestResult<AppInfo>>() {
+        });
+        if (!result.getSuccess()) {
+            throw new IllegalStateException("请求配置中心服务失败：" + result.getMessage());
+        }
+
+        return result.getData();
     }
 
     public static List<AppConfigInfo> getAppConfig(String url, Map<String, Object> paramMap) {

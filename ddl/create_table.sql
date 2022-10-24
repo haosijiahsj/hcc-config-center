@@ -3,6 +3,7 @@ CREATE TABLE `application` (
   `app_code` varchar(64) NOT NULL COMMENT '应用编码',
   `app_name` varchar(64) NOT NULL COMMENT '应用名称',
   `app_status` varchar(32) NOT NULL COMMENT '状态',
+  `app_mode` varchar(32) NOT NULL COMMENT '应用模式，推、拉',
   `secret_key` varchar(128) NOT NULL COMMENT '密钥',
   `owner` varchar(32) DEFAULT NULL COMMENT '责任人',
   `create_time` datetime NOT NULL COMMENT '创建时间',

@@ -1,4 +1,4 @@
-package com.hcc.config.center.client.constant;
+package com.hcc.config.center.client.entity;
 
 /**
  * Constants
@@ -16,5 +16,9 @@ public interface Constants {
      * 配置中心获取服务节点地址
      */
     String SERVER_NODE_URI = "/config-center/get-server-node";
+    /**
+     * 配置中心获取应用信息地址
+     */
+    String APP_INFO_URI = "/config-center/get-app";
 
 }
