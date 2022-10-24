@@ -112,15 +112,19 @@ public class ConfigCenterMsgProcessor {
         Integer dynCurVersion = dynamicFieldInfo.getVersion();
         String dynCurValue = dynamicFieldInfo.getValue();
         if (dynCurVersion != null && dynCurVersion >= newVersion && !forceUpdate) {
-            log.info("类：[{}]，字段：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略更新",
-                    bean.getClass().getName(), field.getName(), key, newValue, dynCurVersion, newVersion);
+            if (log.isDebugEnabled()) {
+                log.debug("类：[{}]，字段：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略更新",
+                        bean.getClass().getName(), field.getName(), key, newValue, dynCurVersion, newVersion);
+            }
             dynamicFieldInfo.setVersion(newVersion);
             return;
         }
 
         if ((dynCurValue == null && newValue == null) || (dynCurValue != null && dynCurValue.equals(newValue))) {
-            log.info("类：[{}]，字段：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略更新",
-                    bean.getClass().getName(), field.getName(), key, dynCurValue, newValue);
+            if (log.isDebugEnabled()) {
+                log.debug("类：[{}]，字段：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略更新",
+                        bean.getClass().getName(), field.getName(), key, dynCurValue, newValue);
+            }
             return;
         }
 
@@ -161,15 +165,19 @@ public class ConfigCenterMsgProcessor {
         Integer dynCurVersion = methodInfo.getVersion();
         String dynCurValue = methodInfo.getValue();
         if (dynCurVersion != null && dynCurVersion >= newVersion && !forceUpdate) {
-            log.info("类：[{}]，方法：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略调用",
-                    bean.getClass().getName(), method.getName(), key, newValue, dynCurVersion, newVersion);
+            if (log.isDebugEnabled()) {
+                log.debug("类：[{}]，方法：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略调用",
+                        bean.getClass().getName(), method.getName(), key, newValue, dynCurVersion, newVersion);
+            }
             methodInfo.setVersion(newVersion);
             return;
         }
 
         if ((dynCurValue == null && newValue == null) || (dynCurValue != null && dynCurValue.equals(newValue))) {
-            log.info("类：[{}]，方法：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略调用",
-                    bean.getClass().getName(), method.getName(), key, dynCurValue, newValue);
+            if (log.isDebugEnabled()) {
+                log.debug("类：[{}]，方法：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略调用",
+                        bean.getClass().getName(), method.getName(), key, dynCurValue, newValue);
+            }
             return;
         }
 

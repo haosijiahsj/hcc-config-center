@@ -7,7 +7,6 @@ import com.hcc.config.center.client.entity.Constants;
 import com.hcc.config.center.client.entity.DynamicFieldInfo;
 import com.hcc.config.center.client.entity.ListenConfigMethodInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
-import com.hcc.config.center.client.utils.ConvertUtils;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
 import lombok.Data;
@@ -212,23 +211,6 @@ public class ConfigContext {
      */
     public String getConfigValue(String key) {
         return configKeyValueMap.get(key);
-    }
-
-    /**
-     * 获取配置值并转换为目标类型
-     * @param key
-     * @param targetClass
-     * @param <T>
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T getConfigValue(String key, Class<T> targetClass) {
-        String value = configKeyValueMap.get(key);
-        if (value == null) {
-            return null;
-        }
-
-        return (T) ConvertUtils.convertValueToTargetType(value, targetClass);
     }
 
     /**

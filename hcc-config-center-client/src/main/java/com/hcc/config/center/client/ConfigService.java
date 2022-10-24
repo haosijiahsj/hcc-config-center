@@ -2,6 +2,7 @@ package com.hcc.config.center.client;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.utils.ConvertUtils;
 
 /**
  * 配置服务，使用此方式直接获取配置，动态配置仍需推送后才能获取到变化值
@@ -42,8 +43,14 @@ public class ConfigService {
      * @param <T>
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T> T getConfigValue(String key, Class<T> targetClass) {
-        return configContext.getConfigValue(key, targetClass);
+        String configValue = this.getConfigValue(key);
+        if (configValue == null) {
+            return null;
+        }
+
+        return (T) ConvertUtils.convertValueToTargetType(configValue, targetClass);
     }
 
     /**
