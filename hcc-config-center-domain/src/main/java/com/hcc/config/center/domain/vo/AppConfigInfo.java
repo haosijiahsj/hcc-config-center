@@ -1,12 +1,12 @@
-package com.hcc.config.center.client.entity;
+package com.hcc.config.center.domain.vo;
 
 import lombok.Data;
 
 /**
- * 配置中心值
+ * AppConfigInfo
  *
- * @author hushengjun
- * @date 2022/10/7
+ * @author shengjun.hu
+ * @date 2022/10/25
  */
 @Data
 public class AppConfigInfo {
@@ -14,7 +14,7 @@ public class AppConfigInfo {
     private String appCode;
     private String key;
     private String value;
-    private Boolean dynamic;
     private Integer version;
+    private Boolean dynamic;
 
 }

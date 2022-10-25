@@ -15,8 +15,11 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 配置上下文
@@ -39,6 +42,7 @@ public class ConfigContext {
      * 拉取时间间隔，默认5分钟
      */
     private Integer pullInterval = 300;
+    private Integer longPollingTimeout = 90000;
 
     /**
      * 模式：推 OR 拉
@@ -143,10 +147,63 @@ public class ConfigContext {
      * @return
      */
     public List<AppConfigInfo> getDynamicConfigFromConfigCenter() {
-        String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
+        String configCenterUrl = this.getConfigCenterUrl() + Constants.DYNAMIC_APP_CONFIG_URI;
 
         Map<String, Object> paramMap = this.reqParamMap();
-        paramMap.put("dynamic", true);
+
+        Map<String, AppConfigInfo> params = new HashMap<>();
+        configMap.forEach((k, v) -> {
+            if (v.getDynamic()) {
+                AppConfigInfo configInfo = new AppConfigInfo();
+                configInfo.setKey(k);
+                configInfo.setVersion(v.getVersion());
+
+                params.put(k, configInfo);
+            }
+        });
+        dynamicFieldInfos.stream()
+                .filter(f -> f.getVersion() == null)
+                .forEach(fieldInfo -> {
+                    AppConfigInfo configInfo = new AppConfigInfo();
+                    configInfo.setKey(fieldInfo.getKey());
+                    configInfo.setVersion(0);
+                    params.putIfAbsent(fieldInfo.getKey(), configInfo);
+                });
+        listenConfigMethodInfos.stream()
+                .filter(m -> m.getVersion() == null)
+                .forEach(m -> {
+                    AppConfigInfo configInfo = new AppConfigInfo();
+                    configInfo.setKey(m.getKey());
+                    configInfo.setVersion(0);
+                    params.putIfAbsent(m.getKey(), configInfo);
+                });
+
+        paramMap.put("keyParam", JsonUtils.toJson(params.values()));
+
+        return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
+    }
+
+    /**
+     * 从配置中心获取动态配置
+     * @return
+     */
+    public List<AppConfigInfo> longPolling() {
+        String configCenterUrl = this.getConfigCenterUrl() + Constants.WATCH_URI;
+
+        Map<String, Object> paramMap = this.reqParamMap();
+        paramMap.put("timeout", longPollingTimeout);
+
+        Set<String> allKeys = configMap.values().stream()
+                .filter(AppConfigInfo::getDynamic)
+                .map(AppConfigInfo::getKey)
+                .collect(Collectors.toSet());
+        allKeys.addAll(
+                dynamicFieldInfos.stream().map(DynamicFieldInfo::getKey).collect(Collectors.toList())
+        );
+        allKeys.addAll(
+                listenConfigMethodInfos.stream().map(ListenConfigMethodInfo::getKey).collect(Collectors.toList())
+        );
+        paramMap.put("keys", String.join(",", allKeys));
 
         return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
     }

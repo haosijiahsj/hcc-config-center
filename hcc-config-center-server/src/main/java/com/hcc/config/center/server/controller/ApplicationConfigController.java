@@ -2,13 +2,16 @@ package com.hcc.config.center.server.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hcc.config.center.domain.enums.AppModeEnum;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.param.ApplicationConfigParam;
 import com.hcc.config.center.domain.param.ApplicationConfigQueryParam;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.result.PageResult;
+import com.hcc.config.center.domain.vo.AppConfigInfo;
 import com.hcc.config.center.domain.vo.ApplicationConfigVo;
+import com.hcc.config.center.server.context.LongPollingContext;
 import com.hcc.config.center.service.ApplicationConfigPushService;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
@@ -71,6 +74,18 @@ public class ApplicationConfigController {
         BeanUtils.copyProperties(param, applicationConfigPo);
 
         applicationConfigService.saveOrUpdateConfig(applicationConfigPo);
+
+        ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
+        ApplicationConfigPo newAppConfigPo = applicationConfigService.getById(applicationConfigPo.getId());
+        if (AppModeEnum.PULL.name().equals(applicationPo.getAppMode())
+                && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())
+                && newAppConfigPo.getDynamic()) {
+            AppConfigInfo appConfigInfo = new AppConfigInfo();
+            BeanUtils.copyProperties(newAppConfigPo, appConfigInfo);
+            appConfigInfo.setAppCode(applicationPo.getAppCode());
+
+            LongPollingContext.publish(appConfigInfo);
+        }
     }
 
     @PostMapping("/import")
@@ -84,7 +99,19 @@ public class ApplicationConfigController {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
         if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
-            applicationConfigPushService.pushDeletedConfig(id);
+            if (AppModeEnum.PUSH.name().equals(applicationPo.getAppMode())) {
+                applicationConfigPushService.pushDeletedConfig(id);
+            } else {
+                applicationConfigService.removeById(id);
+
+                AppConfigInfo appConfigInfo = new AppConfigInfo();
+                appConfigInfo.setAppCode(applicationPo.getAppCode());
+                appConfigInfo.setDynamic(true);
+                appConfigInfo.setKey(applicationConfigPo.getKey());
+                appConfigInfo.setVersion(0);
+
+                LongPollingContext.publish(appConfigInfo);
+            }
         } else {
             applicationConfigService.removeById(id);
         }
@@ -99,6 +126,9 @@ public class ApplicationConfigController {
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
         if (!AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
             throw new IllegalArgumentException("应用未上线，无法推送");
+        }
+        if (!AppModeEnum.PUSH.name().equals(applicationPo.getAppMode())) {
+            throw new IllegalArgumentException("应用模式不是推模式，无法推送");
         }
 
         applicationConfigPushService.pushConfig(id, forceUpdate);

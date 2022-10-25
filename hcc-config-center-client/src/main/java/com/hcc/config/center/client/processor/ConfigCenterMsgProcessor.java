@@ -79,8 +79,10 @@ public class ConfigCenterMsgProcessor {
                 if (!CollectionUtils.isEmpty(dynamicFieldInfos)) {
                     dynamicFieldInfos.forEach(dynamicFieldInfo -> this.processDynamicValue(msgInfo, dynamicFieldInfo));
                 } else {
-                    // 没有动态字段
-                    log.warn("key: [{}]没有字段引用，忽略更新", key);
+                    if (log.isDebugEnabled()) {
+                        // 没有动态字段
+                        log.debug("key: [{}]没有字段引用，忽略更新", key);
+                    }
                 }
 
                 // ListenConfig注解处理
@@ -88,7 +90,9 @@ public class ConfigCenterMsgProcessor {
                 if (!CollectionUtils.isEmpty(listenConfigMethodInfos)) {
                     listenConfigMethodInfos.forEach(methodInfo -> this.processListenConfig(msgInfo, methodInfo));
                 } else {
-                    log.warn("key: [{}]没有方法标注，忽略调用", key);
+                    if (log.isDebugEnabled()) {
+                        log.warn("key: [{}]没有方法标注，忽略调用", key);
+                    }
                 }
             }
         };
@@ -144,8 +148,7 @@ public class ConfigCenterMsgProcessor {
             failedInfo.setKey(key);
             failedInfo.setOldValue(dynCurValue);
             failedInfo.setNewValue(newValue);
-            failedInfo.setException(e);
-            callBack.updateFieldFailedCallBack(failedInfo);
+            callBack.updateFieldFailedCallBack(failedInfo, e);
         }
     }
 
@@ -195,8 +198,7 @@ public class ConfigCenterMsgProcessor {
             failedInfo.setKey(key);
             failedInfo.setOldValue(dynCurValue);
             failedInfo.setNewValue(newValue);
-            failedInfo.setException(e);
-            callBack.callListenConfigMethodFailedCallBack(failedInfo);
+            callBack.callListenConfigMethodFailedCallBack(failedInfo, e);
         }
     }
 

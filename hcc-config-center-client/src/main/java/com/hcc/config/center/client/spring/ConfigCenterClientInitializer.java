@@ -7,7 +7,7 @@ import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.netty.ConfigCenterClient;
-import com.hcc.config.center.client.schedule.ConfigCenterClientSchedule;
+import com.hcc.config.center.client.longpolling.ConfigCenterClientLongPolling;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,7 +53,7 @@ public class ConfigCenterClientInitializer {
 
             new Thread(configCenterClient::startUp).start();
         } else if (AppMode.PULL.name().equals(configContext.getAppMode())) {
-            ConfigCenterClientSchedule schedule = new ConfigCenterClientSchedule(configContext, callBack);
+            ConfigCenterClientLongPolling schedule = new ConfigCenterClientLongPolling(configContext, callBack);
 
             schedule.startUp();
         } else {

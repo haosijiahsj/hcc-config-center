@@ -4,23 +4,30 @@ import cn.hutool.core.collection.CollUtil;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
-import com.hcc.config.center.domain.vo.ApplicationConfigVo;
+import com.hcc.config.center.domain.vo.AppConfigInfo;
 import com.hcc.config.center.domain.vo.ApplicationVo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
+import com.hcc.config.center.server.context.LongPollingContext;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
+import com.hcc.config.center.service.utils.JsonUtils;
 import com.hcc.config.center.service.zk.ZkHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +36,7 @@ import java.util.stream.Collectors;
  * @author shengjun.hu
  * @date 2022/10/8
  */
+@Slf4j
 @RestController
 @RequestMapping
 public class ConfigCenterController {
@@ -54,9 +62,9 @@ public class ConfigCenterController {
     }
 
     @GetMapping("/get-app-config")
-    public List<ApplicationConfigVo> getAppConfig(@RequestParam String appCode,
-                                                  @RequestParam String secretKey,
-                                                  @RequestParam(required = false) Boolean dynamic) {
+    public List<AppConfigInfo> getAppConfig(@RequestParam String appCode,
+                                            @RequestParam String secretKey,
+                                            @RequestParam(required = false) Boolean dynamic) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
@@ -69,12 +77,56 @@ public class ConfigCenterController {
 
         return applicationConfigPos.stream()
                 .map(c -> {
-                    ApplicationConfigVo applicationConfigVo = new ApplicationConfigVo();
-                    BeanUtils.copyProperties(c, applicationConfigVo);
+                    AppConfigInfo appConfigInfo = new AppConfigInfo();
+                    BeanUtils.copyProperties(c, appConfigInfo);
 
-                    return applicationConfigVo;
+                    return appConfigInfo;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/get-dynamic-app-config")
+    public List<AppConfigInfo> getAppConfigForDynamic(@RequestParam String appCode,
+                                                      @RequestParam String secretKey,
+                                                      @RequestParam String keyParam) {
+        ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
+        List<AppConfigInfo> configParams = JsonUtils.toList(keyParam, AppConfigInfo.class);
+
+        List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
+                .eq(ApplicationConfigPo::getApplicationId, applicationPo.getId())
+                .eq(ApplicationConfigPo::getDynamic, true)
+                .eq(ApplicationConfigPo::getKey, configParams.stream().map(AppConfigInfo::getKey).collect(Collectors.toSet()))
+                .list();
+        if (CollUtil.isEmpty(applicationConfigPos)) {
+            return Collections.emptyList();
+        }
+
+        Map<String, ApplicationConfigPo> keyApplicationConfigMap = applicationConfigPos.stream()
+                .collect(Collectors.toMap(ApplicationConfigPo::getKey, Function.identity()));
+
+        List<AppConfigInfo> changeConfigs = new ArrayList<>();
+        for (AppConfigInfo configParam : configParams) {
+            ApplicationConfigPo applicationConfigPo = keyApplicationConfigMap.get(configParam.getKey());
+            AppConfigInfo appConfigInfo = new AppConfigInfo();
+            appConfigInfo.setAppCode(appCode);
+            appConfigInfo.setDynamic(true);
+            appConfigInfo.setKey(configParam.getKey());
+
+            if (applicationConfigPo == null) {
+                // 删除了
+                appConfigInfo.setVersion(0);
+            } else {
+                if (configParam.getVersion() >= applicationConfigPo.getVersion()) {
+                    continue;
+                }
+                // 变化了
+                appConfigInfo.setValue(applicationConfigPo.getValue());
+                appConfigInfo.setVersion(applicationConfigPo.getVersion());
+            }
+            changeConfigs.add(appConfigInfo);
+        }
+
+        return changeConfigs;
     }
 
     @GetMapping("/get-server-node")
@@ -96,6 +148,30 @@ public class ConfigCenterController {
         }
 
         return applicationPo;
+    }
+
+    @GetMapping("/watch")
+    public DeferredResult<List<AppConfigInfo>> watchAppCode(@RequestParam String appCode, @RequestParam Long timeout,
+                                                            @RequestParam List<String> keys) {
+        DeferredResult<List<AppConfigInfo>> result = new DeferredResult<>(timeout, Collections.emptyList());
+
+        String clientId = UUID.randomUUID().toString().replaceAll("-", "");
+        LongPollingContext.add(clientId, appCode, result, keys);
+
+        result.onTimeout(() -> {
+            log.info("timeout");
+            LongPollingContext.remove(clientId);
+        });
+        result.onCompletion(() -> {
+            log.info("success");
+            LongPollingContext.remove(clientId);
+        });
+        result.onError(e -> {
+            log.error("error", e);
+            LongPollingContext.remove(clientId);
+        });
+
+        return result;
     }
 
 }

@@ -16,6 +16,5 @@ public class BaseVo {
     private Long id;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    private Integer deleted;
 
 }

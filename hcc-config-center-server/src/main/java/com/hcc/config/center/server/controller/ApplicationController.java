@@ -3,7 +3,7 @@ package com.hcc.config.center.server.controller;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.hcc.config.center.domain.enums.AppMode;
+import com.hcc.config.center.domain.enums.AppModeEnum;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
 import com.hcc.config.center.domain.param.ApplicationParam;
 import com.hcc.config.center.domain.param.ApplicationQueryParam;
@@ -109,19 +109,25 @@ public class ApplicationController {
             applicationPo.setSecretKey(secretKey);
             applicationPo.setAppStatus(AppStatusEnum.NOT_ONLINE.name());
             if (param.getAppMode() == null) {
-                applicationPo.setAppMode(AppMode.PUSH.name());
+                applicationPo.setAppMode(AppModeEnum.PUSH.name());
             }
             applicationPo.setCreateTime(now);
 
             applicationService.save(applicationPo);
         } else {
-            this.checkApplicationExist(param.getId());
+            ApplicationPo exist = this.checkApplicationExist(param.getId());
+            if (!AppStatusEnum.NOT_ONLINE.name().equals(exist.getAppStatus())) {
+                if (!exist.getAppCode().equals(param.getAppCode()) || exist.getAppMode().equals(param.getAppMode())) {
+                    throw new IllegalArgumentException("当前状态不允许修改应用编码和模式");
+                }
+            }
 
-            applicationService.lambdaUpdate()
-                    .set(ApplicationPo::getAppName, param.getAppName())
-                    .set(ApplicationPo::getOwner, param.getOwner())
-                    .eq(ApplicationPo::getId, param.getId())
-                    .update();
+            ApplicationPo updatePo = new ApplicationPo();
+            BeanUtils.copyProperties(param, updatePo);
+            updatePo.setSecretKey(exist.getSecretKey());
+            updatePo.setAppStatus(exist.getAppStatus());
+            updatePo.setUpdateTime(now);
+            applicationService.updateById(updatePo);
         }
     }
 

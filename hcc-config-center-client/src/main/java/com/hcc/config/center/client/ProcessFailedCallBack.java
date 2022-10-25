@@ -16,12 +16,12 @@ public interface ProcessFailedCallBack {
      * 更新动态值失败回调方法
      * @param fieldFailed
      */
-    default void updateFieldFailedCallBack(UpdateFieldFailed fieldFailed) {}
+    default void updateFieldFailedCallBack(UpdateFieldFailed fieldFailed, Exception exception) {}
 
     /**
      * 调用监听配置失败回调方法
      * @param methodFailed
      */
-    default void callListenConfigMethodFailedCallBack(CallListenConfigMethodFailed methodFailed) {}
+    default void callListenConfigMethodFailedCallBack(CallListenConfigMethodFailed methodFailed, Exception exception) {}
 
 }
