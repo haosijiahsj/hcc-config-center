@@ -25,13 +25,14 @@ public class ConfigCenterConfig {
      * @return
      */
     @Bean
-    public ConfigContext configCenterContext(Environment environment) {
+    public ConfigContext configContext(Environment environment) {
         ConfigContext configContext = new ConfigContext();
         String appCode = environment.getRequiredProperty("config.center.appCode");
         String secretKey = environment.getRequiredProperty("config.center.secretKey");
         String serverUrl = environment.getRequiredProperty("config.center.serverUrl");
         Boolean enableDynamicPush = environment.getProperty("config.center.enableDynamicPush", Boolean.class);
         Integer pullInterval = environment.getProperty("config.center.pullInterval", Integer.class);
+        Integer longPollingTimeout = environment.getProperty("config.center.longPollingTimeout", Integer.class);
 
         configContext.setAppCode(appCode);
         configContext.setSecretKey(secretKey);
@@ -41,6 +42,9 @@ public class ConfigCenterConfig {
         }
         if (pullInterval != null) {
             configContext.setPullInterval(pullInterval);
+        }
+        if (longPollingTimeout != null) {
+            configContext.setLongPollingTimeout(longPollingTimeout);
         }
         configContext.initContext();
 

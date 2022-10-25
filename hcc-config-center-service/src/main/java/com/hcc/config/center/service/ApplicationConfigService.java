@@ -14,6 +14,6 @@ public interface ApplicationConfigService extends BaseService<ApplicationConfigP
      * 保存或更新配置
      * @param applicationConfigPo
      */
-    void saveOrUpdateConfig(ApplicationConfigPo applicationConfigPo);
+    boolean saveOrUpdateConfig(ApplicationConfigPo applicationConfigPo);
 
 }

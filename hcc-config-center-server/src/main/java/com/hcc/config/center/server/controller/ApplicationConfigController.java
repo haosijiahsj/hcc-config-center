@@ -73,13 +73,14 @@ public class ApplicationConfigController {
         ApplicationConfigPo applicationConfigPo = new ApplicationConfigPo();
         BeanUtils.copyProperties(param, applicationConfigPo);
 
-        applicationConfigService.saveOrUpdateConfig(applicationConfigPo);
+        boolean valueChanged = applicationConfigService.saveOrUpdateConfig(applicationConfigPo);
 
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
         ApplicationConfigPo newAppConfigPo = applicationConfigService.getById(applicationConfigPo.getId());
         if (AppModeEnum.PULL.name().equals(applicationPo.getAppMode())
                 && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())
-                && newAppConfigPo.getDynamic()) {
+                && newAppConfigPo.getDynamic()
+                && valueChanged) {
             AppConfigInfo appConfigInfo = new AppConfigInfo();
             BeanUtils.copyProperties(newAppConfigPo, appConfigInfo);
             appConfigInfo.setAppCode(applicationPo.getAppCode());

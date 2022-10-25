@@ -159,15 +159,15 @@ public class ConfigCenterController {
         LongPollingContext.add(clientId, appCode, result, keys);
 
         result.onTimeout(() -> {
-            log.info("timeout");
+            log.info("clientId: [{}], 超时返回", clientId);
             LongPollingContext.remove(clientId);
         });
         result.onCompletion(() -> {
-            log.info("success");
+            log.info("clientId: [{}], 成功返回", clientId);
             LongPollingContext.remove(clientId);
         });
         result.onError(e -> {
-            log.error("error", e);
+            log.error(String.format("clientId: [%s], 异常返回", clientId), e);
             LongPollingContext.remove(clientId);
         });
 

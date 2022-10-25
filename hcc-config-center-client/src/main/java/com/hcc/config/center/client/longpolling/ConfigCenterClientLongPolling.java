@@ -105,6 +105,9 @@ public class ConfigCenterClientLongPolling {
                     if (c.getVersion() == 0) {
                         msgInfo.setForceUpdate(true);
                         msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_DELETE.name());
+                    } else {
+                        msgInfo.setForceUpdate(false);
+                        msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_UPDATE.name());
                     }
 
                     return msgInfo;

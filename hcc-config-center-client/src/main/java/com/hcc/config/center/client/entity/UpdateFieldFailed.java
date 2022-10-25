@@ -18,6 +18,5 @@ public class UpdateFieldFailed {
     private String key;
     private String oldValue;
     private String newValue;
-    private Exception exception;
 
 }

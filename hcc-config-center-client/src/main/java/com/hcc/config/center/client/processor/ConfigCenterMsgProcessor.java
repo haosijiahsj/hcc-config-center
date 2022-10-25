@@ -66,38 +66,49 @@ public class ConfigCenterMsgProcessor {
     public void startWorker() {
         Runnable runnable = () -> {
             while (true) {
-                MsgInfo msgInfo = takeMsgInfo();
-
-                if (!this.needProcess(msgInfo)) {
-                    continue;
-                }
-
-                String key = msgInfo.getKey();
-
-                // DynamicValue注解处理
-                List<DynamicFieldInfo> dynamicFieldInfos = keyDynamicFieldInfoMap.get(key);
-                if (!CollectionUtils.isEmpty(dynamicFieldInfos)) {
-                    dynamicFieldInfos.forEach(dynamicFieldInfo -> this.processDynamicValue(msgInfo, dynamicFieldInfo));
-                } else {
-                    if (log.isDebugEnabled()) {
-                        // 没有动态字段
-                        log.debug("key: [{}]没有字段引用，忽略更新", key);
-                    }
-                }
-
-                // ListenConfig注解处理
-                List<ListenConfigMethodInfo> listenConfigMethodInfos = keyListenConfigMethodInfoMap.get(key);
-                if (!CollectionUtils.isEmpty(listenConfigMethodInfos)) {
-                    listenConfigMethodInfos.forEach(methodInfo -> this.processListenConfig(msgInfo, methodInfo));
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.warn("key: [{}]没有方法标注，忽略调用", key);
-                    }
+                try {
+                    this.process();
+                } catch (Exception e) {
+                    log.error("处理异常", e);
                 }
             }
         };
 
         new Thread(runnable, "value-refresh").start();
+    }
+
+    /**
+     * 处理入口
+     */
+    private void process() {
+        MsgInfo msgInfo = this.takeMsgInfo();
+
+        if (!this.needProcess(msgInfo)) {
+            return;
+        }
+
+        String key = msgInfo.getKey();
+
+        // DynamicValue注解处理
+        List<DynamicFieldInfo> dynamicFieldInfos = keyDynamicFieldInfoMap.get(key);
+        if (!CollectionUtils.isEmpty(dynamicFieldInfos)) {
+            dynamicFieldInfos.forEach(dynamicFieldInfo -> this.processDynamicValue(msgInfo, dynamicFieldInfo));
+        } else {
+            if (log.isDebugEnabled()) {
+                // 没有动态字段
+                log.debug("key: [{}]没有字段引用，忽略更新", key);
+            }
+        }
+
+        // ListenConfig注解处理
+        List<ListenConfigMethodInfo> listenConfigMethodInfos = keyListenConfigMethodInfoMap.get(key);
+        if (!CollectionUtils.isEmpty(listenConfigMethodInfos)) {
+            listenConfigMethodInfos.forEach(methodInfo -> this.processListenConfig(msgInfo, methodInfo));
+        } else {
+            if (log.isDebugEnabled()) {
+                log.warn("key: [{}]没有方法标注，忽略调用", key);
+            }
+        }
     }
 
     /**
