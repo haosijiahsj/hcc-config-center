@@ -1,7 +1,6 @@
 package com.hcc.config.center.client;
 
-import com.hcc.config.center.client.entity.CallListenConfigMethodFailed;
-import com.hcc.config.center.client.entity.UpdateFieldFailed;
+import com.hcc.config.center.client.entity.ProcessDynamicConfigFailed;
 
 /**
  * 动态配置处理失败后回调方法<br/>
@@ -13,15 +12,9 @@ import com.hcc.config.center.client.entity.UpdateFieldFailed;
 public interface ProcessFailedCallBack {
 
     /**
-     * 更新动态值失败回调方法
-     * @param fieldFailed
+     * 处理动态值失败回调方法
+     * @param processDynamicConfigFailed
      */
-    default void updateFieldFailedCallBack(UpdateFieldFailed fieldFailed, Exception exception) {}
-
-    /**
-     * 调用监听配置失败回调方法
-     * @param methodFailed
-     */
-    default void callListenConfigMethodFailedCallBack(CallListenConfigMethodFailed methodFailed, Exception exception) {}
+    default void callBack(ProcessDynamicConfigFailed processDynamicConfigFailed, Exception exception) {}
 
 }

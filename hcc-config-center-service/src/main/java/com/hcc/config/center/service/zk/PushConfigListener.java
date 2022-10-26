@@ -3,10 +3,9 @@ package com.hcc.config.center.service.zk;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hcc.config.center.domain.constants.NodePathConstants;
-import com.hcc.config.center.domain.enums.PushConfigMsgType;
 import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import com.hcc.config.center.domain.vo.PushConfigNodeDataVo;
-import com.hcc.config.center.service.netty.NettyChannelManage;
+import com.hcc.config.center.service.netty.NettyChannelContext;
 import com.hcc.config.center.service.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -68,7 +67,7 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         }
 
         PushConfigNodeDataVo nodeDataVo = JsonUtils.toObject(jsonData, PushConfigNodeDataVo.class);
-        if (!NettyChannelManage.existAppCodeClient(nodeDataVo.getAppCode())) {
+        if (!NettyChannelContext.existAppCodeClient(nodeDataVo.getAppCode())) {
             log.info("当前实例不存在appCode: [{}]的客户端连接，忽略！", nodeDataVo.getAppCode());
             return;
         }
@@ -79,13 +78,13 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
                 BeanUtils.copyProperties(nodeDataVo, msgVo);
                 msgVo.setClientId(clientId);
 
-                NettyChannelManage.sendMsg(clientId, msgVo);
+                NettyChannelContext.sendMsg(clientId, msgVo);
             }
         } else {
             PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
             BeanUtils.copyProperties(nodeDataVo, msgVo);
 
-            NettyChannelManage.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
+            NettyChannelContext.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
         }
     }
 

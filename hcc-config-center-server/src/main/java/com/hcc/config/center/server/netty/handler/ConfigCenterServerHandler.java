@@ -1,6 +1,6 @@
 package com.hcc.config.center.server.netty.handler;
 
-import com.hcc.config.center.service.netty.NettyChannelManage;
+import com.hcc.config.center.service.netty.NettyChannelContext;
 import com.hcc.config.center.service.netty.MsgInfo;
 import com.hcc.config.center.service.utils.JsonUtils;
 import io.netty.buffer.ByteBuf;
@@ -20,7 +20,7 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteB
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        NettyChannelManage.addChannel(ctx.channel());
+        NettyChannelContext.addChannel(ctx.channel());
     }
 
     @Override
@@ -28,13 +28,13 @@ public class ConfigCenterServerHandler extends SimpleChannelInboundHandler<ByteB
         String json = this.readByteBuf(msg);
         MsgInfo msgInfo = JsonUtils.toObject(json, MsgInfo.class);
         if (MsgInfo.MsgType.INIT.name().equals(msgInfo.getMsgType())) {
-            NettyChannelManage.addAppChannelRelation(msgInfo.getAppCode(), ctx.channel());
+            NettyChannelContext.addAppChannelRelation(msgInfo.getAppCode(), ctx.channel());
         }
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        NettyChannelManage.removeChannel(ctx.channel());
+        NettyChannelContext.removeChannel(ctx.channel());
     }
 
     @Override

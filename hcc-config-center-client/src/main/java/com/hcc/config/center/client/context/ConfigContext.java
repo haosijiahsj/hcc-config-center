@@ -4,8 +4,7 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.Constants;
-import com.hcc.config.center.client.entity.DynamicFieldInfo;
-import com.hcc.config.center.client.entity.ListenConfigMethodInfo;
+import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
@@ -15,7 +14,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,8 +50,7 @@ public class ConfigContext {
     private Map<String, AppConfigInfo> configMap = new HashMap<>();
     private Map<String, String> configKeyValueMap = new HashMap<>();
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
-    private List<DynamicFieldInfo> dynamicFieldInfos = new ArrayList<>();
-    private List<ListenConfigMethodInfo> listenConfigMethodInfos = new ArrayList<>();
+    private List<DynamicConfigRefInfo> dynamicConfigRefInfos = new ArrayList<>();
 
     /**
      * 配置中心url
@@ -161,21 +158,13 @@ public class ConfigContext {
                 params.put(k, configInfo);
             }
         });
-        dynamicFieldInfos.stream()
+        dynamicConfigRefInfos.stream()
                 .filter(f -> f.getVersion() == null)
                 .forEach(fieldInfo -> {
                     AppConfigInfo configInfo = new AppConfigInfo();
                     configInfo.setKey(fieldInfo.getKey());
                     configInfo.setVersion(0);
                     params.putIfAbsent(fieldInfo.getKey(), configInfo);
-                });
-        listenConfigMethodInfos.stream()
-                .filter(m -> m.getVersion() == null)
-                .forEach(m -> {
-                    AppConfigInfo configInfo = new AppConfigInfo();
-                    configInfo.setKey(m.getKey());
-                    configInfo.setVersion(0);
-                    params.putIfAbsent(m.getKey(), configInfo);
                 });
 
         paramMap.put("keyParam", JsonUtils.toJson(params.values()));
@@ -198,10 +187,7 @@ public class ConfigContext {
                 .map(AppConfigInfo::getKey)
                 .collect(Collectors.toSet());
         allKeys.addAll(
-                dynamicFieldInfos.stream().map(DynamicFieldInfo::getKey).collect(Collectors.toList())
-        );
-        allKeys.addAll(
-                listenConfigMethodInfos.stream().map(ListenConfigMethodInfo::getKey).collect(Collectors.toList())
+                dynamicConfigRefInfos.stream().map(DynamicConfigRefInfo::getKey).collect(Collectors.toList())
         );
         paramMap.put("keys", String.join(",", allKeys));
 
@@ -223,18 +209,10 @@ public class ConfigContext {
 
     /**
      * 添加动态字段信息
-     * @param dynamicFieldInfo
+     * @param dynamicConfigRefInfo
      */
-    public synchronized void addDynamicFieldInfo(DynamicFieldInfo dynamicFieldInfo) {
-        dynamicFieldInfos.add(dynamicFieldInfo);
-    }
-
-    /**
-     * 添加ListenConfig方法信息
-     * @param methodInfo
-     */
-    public synchronized void addListenConfigMethodInfo(ListenConfigMethodInfo methodInfo) {
-        listenConfigMethodInfos.add(methodInfo);
+    public synchronized void addDynamicConfigInfo(DynamicConfigRefInfo dynamicConfigRefInfo) {
+        dynamicConfigRefInfos.add(dynamicConfigRefInfo);
     }
 
     /**

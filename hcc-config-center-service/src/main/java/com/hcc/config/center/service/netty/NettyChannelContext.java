@@ -20,13 +20,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * NettyChannelManage
+ * netty channel上下文管理
  *
  * @author shengjun.hu
  * @date 2022/10/12
  */
 @Slf4j
-public class NettyChannelManage {
+public class NettyChannelContext {
 
     private static final String CLIENT_ID = "CLIENT_ID";
 

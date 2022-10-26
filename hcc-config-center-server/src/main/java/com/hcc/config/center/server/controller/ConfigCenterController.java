@@ -155,7 +155,7 @@ public class ConfigCenterController {
                                                             @RequestParam List<String> keys) {
         DeferredResult<List<AppConfigInfo>> result = new DeferredResult<>(timeout, Collections.emptyList());
 
-        String clientId = UUID.randomUUID().toString().replaceAll("-", "");
+        String clientId = appCode + "_" + UUID.randomUUID().toString().replaceAll("-", "");
         LongPollingContext.add(clientId, appCode, result, keys);
 
         result.onTimeout(() -> {

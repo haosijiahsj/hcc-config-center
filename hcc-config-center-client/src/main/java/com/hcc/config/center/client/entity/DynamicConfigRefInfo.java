@@ -2,22 +2,24 @@ package com.hcc.config.center.client.entity;
 
 import lombok.Data;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- * ListenConfigMethodInfo
+ * 动态配置引用信息
  *
- * @author hushengjun
- * @date 2022/10/21
+ * @author shengjun.hu
+ * @date 2022/10/8
  */
 @Data
-public class ListenConfigMethodInfo {
+public class DynamicConfigRefInfo {
 
-    private String key;
     private String beanName;
     private Object bean;
+    private Field field;
     private Method method;
-    private Class<?> beanClass;
+
+    private String key;
     private String value;
     private Integer version;
 

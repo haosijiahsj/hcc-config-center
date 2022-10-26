@@ -5,8 +5,7 @@ import com.hcc.config.center.client.annotation.ListenConfig;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
-import com.hcc.config.center.client.entity.DynamicFieldInfo;
-import com.hcc.config.center.client.entity.ListenConfigMethodInfo;
+import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
 import com.hcc.config.center.client.utils.ConvertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -52,7 +51,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             String configKey = staticValue != null ? staticValue.value() : dynamicValue.value();
             this.injectConfigValue(configKey, bean, field);
             if (dynamicValue != null) {
-                this.collectDynamicFieldInfo(configKey, beanName, field, bean);
+                this.collectDynamicConfigInfo(configKey, beanName, field, null, bean);
             }
         }
 
@@ -75,7 +74,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                         bean.getClass().getName(), method.getName()));
             }
             this.invokeMethod(listenConfig.value(), bean, method);
-            this.collectListenConfigMethodInfo(listenConfig.value(), beanName, method, bean);
+            this.collectDynamicConfigInfo(listenConfig.value(), beanName, null, method, bean);
         }
 
         return bean;
@@ -130,18 +129,18 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     }
 
     /**
-     * 收集需要动态刷新的字段
+     * 收集引用的动态字段或方法
      * @param configKey
      * @param beanName
      * @param field
      */
-    private void collectDynamicFieldInfo(String configKey, String beanName, Field field, Object bean) {
-        DynamicFieldInfo dynamicFieldInfo = new DynamicFieldInfo();
-        dynamicFieldInfo.setKey(configKey);
-        dynamicFieldInfo.setField(field);
-        dynamicFieldInfo.setBeanName(beanName);
-        dynamicFieldInfo.setBean(bean);
-        dynamicFieldInfo.setBeanClass(bean.getClass());
+    private void collectDynamicConfigInfo(String configKey, String beanName, Field field, Method method, Object bean) {
+        DynamicConfigRefInfo dynamicConfigRefInfo = new DynamicConfigRefInfo();
+        dynamicConfigRefInfo.setKey(configKey);
+        dynamicConfigRefInfo.setField(field);
+        dynamicConfigRefInfo.setMethod(method);
+        dynamicConfigRefInfo.setBeanName(beanName);
+        dynamicConfigRefInfo.setBean(bean);
 
         // 将value和version放进去
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
@@ -150,39 +149,11 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                 log.warn("类：[{}]，字段：[{}]，key: [{}]，不是动态配置！", bean.getClass().getName(), field.getName(), configKey);
             }
 
-            dynamicFieldInfo.setValue(appConfigInfo.getValue());
-            dynamicFieldInfo.setVersion(appConfigInfo.getVersion());
+            dynamicConfigRefInfo.setValue(appConfigInfo.getValue());
+            dynamicConfigRefInfo.setVersion(appConfigInfo.getVersion());
         }
 
-        configContext.addDynamicFieldInfo(dynamicFieldInfo);
-    }
-
-    /**
-     * 收集需要动态字段刷新后调用的方法
-     * @param configKey
-     * @param beanName
-     * @param method
-     */
-    private void collectListenConfigMethodInfo(String configKey, String beanName, Method method, Object bean) {
-        ListenConfigMethodInfo methodInfo = new ListenConfigMethodInfo();
-        methodInfo.setKey(configKey);
-        methodInfo.setMethod(method);
-        methodInfo.setBeanName(beanName);
-        methodInfo.setBean(bean);
-        methodInfo.setBeanClass(bean.getClass());
-
-        // 将value和version放进去
-        AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
-        if (appConfigInfo != null) {
-            if (!appConfigInfo.getDynamic()) {
-                log.warn("类：[{}]，方法：[{}]，key: [{}]，不是动态配置！", bean.getClass().getName(), method.getName(), configKey);
-            }
-
-            methodInfo.setValue(appConfigInfo.getValue());
-            methodInfo.setVersion(appConfigInfo.getVersion());
-        }
-
-        configContext.addListenConfigMethodInfo(methodInfo);
+        configContext.addDynamicConfigInfo(dynamicConfigRefInfo);
     }
 
 }
