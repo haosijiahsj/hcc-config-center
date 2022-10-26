@@ -151,9 +151,12 @@ public class ConfigCenterController {
     }
 
     @GetMapping("/watch")
-    public DeferredResult<List<AppConfigInfo>> watchAppCode(@RequestParam String appCode, @RequestParam Long timeout,
+    public DeferredResult<List<AppConfigInfo>> watchAppCode(@RequestParam String appCode,
+                                                            @RequestParam String secretKey,
+                                                            @RequestParam Long timeout,
                                                             @RequestParam List<String> keys) {
         DeferredResult<List<AppConfigInfo>> result = new DeferredResult<>(timeout, Collections.emptyList());
+        this.checkApplication(appCode, secretKey);
 
         String clientId = appCode + "_" + UUID.randomUUID().toString().replaceAll("-", "");
         LongPollingContext.add(clientId, appCode, result, keys);

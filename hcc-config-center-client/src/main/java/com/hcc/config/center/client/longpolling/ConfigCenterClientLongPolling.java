@@ -45,7 +45,8 @@ public class ConfigCenterClientLongPolling {
                 try {
                     this.doPullConfigAndProcess(true);
                 } catch (Exception e) {
-                    log.error("本次拉取处理任务出现异常！", e);
+                    log.error("本次拉取处理任务出现异常！休眠10s", e);
+                    this.sleepForSecond(10);
                 }
             }
         };

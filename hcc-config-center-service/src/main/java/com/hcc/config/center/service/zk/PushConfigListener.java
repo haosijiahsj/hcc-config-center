@@ -12,10 +12,13 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * PushConfigListener
@@ -25,13 +28,19 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class PushConfigListener implements ApplicationListener<ApplicationReadyEvent> {
+public class PushConfigListener implements ApplicationListener<ApplicationReadyEvent>, DisposableBean {
 
     @Autowired
     private CuratorFramework curatorFramework;
 
+    private TreeCache treeCache;
+
+    @PostConstruct
+    private void init() {
+        this.treeCache = new TreeCache(curatorFramework, NodePathConstants.PUSH_CONFIG_PATH);
+    }
+
     private void startListener() {
-        TreeCache treeCache = new TreeCache(curatorFramework, NodePathConstants.PUSH_CONFIG_PATH);
         treeCache.getListenable()
                 .addListener((client, event) -> {
                     TreeCacheEvent.Type type = event.getType();
@@ -130,4 +139,11 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         log.info("zk path: {}启动监听成功", NodePathConstants.PUSH_CONFIG_PATH);
     }
 
+    @Override
+    public void destroy() throws Exception {
+        if (treeCache != null) {
+            treeCache.close();
+            log.info("zk path: {}监听关闭", NodePathConstants.PUSH_CONFIG_PATH);
+        }
+    }
 }

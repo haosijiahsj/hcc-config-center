@@ -1,7 +1,7 @@
 package com.hcc.config.center.server;
 
-import com.hcc.config.center.service.config.ConfigCenterProperties;
 import com.hcc.config.center.server.netty.ConfigCenterServer;
+import com.hcc.config.center.service.config.ConfigCenterProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -21,7 +20,6 @@ import java.net.UnknownHostException;
  * @date 2022/10/6
  */
 @Slf4j
-@EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.hcc.config.center")
 public class HccConfigCenterApplication implements ApplicationListener<ApplicationStartedEvent> {
 
