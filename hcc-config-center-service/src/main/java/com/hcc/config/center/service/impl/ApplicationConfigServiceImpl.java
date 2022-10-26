@@ -85,7 +85,9 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
         historyPo.setCreateTime(now);
 
         // 记录历史
-        applicationConfigHistoryService.save(historyPo);
+        if (changed) {
+            applicationConfigHistoryService.save(historyPo);
+        }
 
         return changed;
     }
