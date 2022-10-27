@@ -19,13 +19,18 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class ConfigCenterConfig {
 
+    private final ConfigContext configContext;
+
+    public ConfigCenterConfig(Environment environment) {
+        this.configContext = this.buildConfigContext(environment);
+    }
+
     /**
-     * 暴露ConfigContext bean
+     * 构建ConfigContext
      * @param environment
      * @return
      */
-    @Bean
-    public ConfigContext configContext(Environment environment) {
+    public ConfigContext buildConfigContext(Environment environment) {
         ConfigContext configContext = new ConfigContext();
         String appCode = environment.getRequiredProperty("config.center.appCode");
         String secretKey = environment.getRequiredProperty("config.center.secretKey");
@@ -53,32 +58,29 @@ public class ConfigCenterConfig {
 
     /**
      * 暴露ConfigService bean
-     * @param configContext
      * @return
      */
     @Bean
-    public ConfigService configService(ConfigContext configContext) {
+    public ConfigService configService() {
         return new ConfigService(configContext);
     }
 
     /**
      * 初始化值注入以及动态字段监听方法收集
-     * @param configContext
      * @return
      */
     @Bean
-    public ConfigCenterBeanPostProcessor configCenterBeanPostProcessor(ConfigContext configContext) {
+    public ConfigCenterBeanPostProcessor configCenterBeanPostProcessor() {
         return new ConfigCenterBeanPostProcessor(configContext);
     }
 
     /**
      * 启动配置中心监听
-     * @param configContext
      * @param callBackObjectProvider
      * @return
      */
     @Bean
-    public ConfigCenterClientInitializer configCenterClientInitializer(ConfigContext configContext, ObjectProvider<ProcessFailedCallBack> callBackObjectProvider) {
+    public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessFailedCallBack> callBackObjectProvider) {
         ProcessFailedCallBack callBack = callBackObjectProvider.getIfUnique(() -> new ProcessFailedCallBack() {});
         ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack);
         initializer.startClient();
