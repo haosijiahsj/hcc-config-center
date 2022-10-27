@@ -76,7 +76,7 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
             this.lambdaUpdate()
                     .set(ApplicationConfigPo::getValue, applicationConfigPo.getValue())
                     .set(ApplicationConfigPo::getComment, applicationConfigPo.getComment())
-                    .setSql(needUpdateVersion && existConfigPo.getDynamic(), "version = version + 1")
+                    .setSql(needUpdateVersion, "version = version + 1")
                     .eq(ApplicationConfigPo::getId, applicationConfigPo.getId())
                     .update();
         }
