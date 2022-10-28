@@ -35,6 +35,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -108,21 +109,18 @@ public class ApplicationConfigController {
 
         String filename = file.getOriginalFilename();
         List<ApplicationConfigPo> applicationConfigPos = new ArrayList<>();
-        String content;
         try {
-            content = new String(file.getBytes(), StandardCharsets.UTF_8);
+            if (filename.endsWith("json")) {
+                String json = new String(file.getBytes(), StandardCharsets.UTF_8);
+                applicationConfigPos.addAll(JsonUtils.toList(json, ApplicationConfigPo.class));
+            } else if (filename.endsWith("yml")) {
+
+            } else if (filename.endsWith("properties")) {
+                Properties properties = new Properties();
+                properties.load(file.getInputStream());
+            }
         } catch (Exception e) {
             throw new IllegalStateException("导入异常！", e);
-        }
-        if (StrUtil.isEmpty(content)) {
-            throw new IllegalArgumentException("文件内容为空！");
-        }
-        if (filename.endsWith("json")) {
-            applicationConfigPos.addAll(JsonUtils.toList(content, ApplicationConfigPo.class));
-        } else if (filename.endsWith("yml")) {
-
-        } else if (filename.endsWith("properties")) {
-
         }
 
         List<String> duplicateKeys = new ArrayList<>();
