@@ -5,6 +5,7 @@ import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.Constants;
 import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
+import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
@@ -92,14 +93,14 @@ public class ConfigContext {
             }
         });
         this.getModeFromConfigCenter();
-        if (AppMode.PUSH.name().equals(appMode)) {
+        if (AppMode.LONG_CONNECT.name().equals(appMode)) {
             this.refreshServerNode();
         }
 
         // 打印所有配置信息
         log.info("静态配置：\n{}", JsonUtils.toJsonForBeauty(staticConfigMap));
         log.info("动态配置：\n{}", JsonUtils.toJsonForBeauty(dynamicConfigMap));
-        if (AppMode.PUSH.name().equals(appMode)) {
+        if (AppMode.LONG_CONNECT.name().equals(appMode)) {
             log.info("服务节点：\n{}", JsonUtils.toJsonForBeauty(this.serverNodeInfos));
         }
     }
@@ -120,8 +121,8 @@ public class ConfigContext {
      * 获取应用mode
      */
     private void getModeFromConfigCenter() {
-        AppInfo appInfo = RestTemplateUtils.getAppInfo(this.getConfigCenterUrl() + Constants.APP_INFO_URI,
-                this.reqParamMap());
+        AppInfo appInfo = RestTemplateUtils.getObject(this.getConfigCenterUrl() + Constants.APP_INFO_URI,
+                this.reqParamMap(), AppInfo.class);
         if (appInfo == null) {
             throw new IllegalStateException(String.format("未获取到应用：%s", appCode));
         }
@@ -136,7 +137,7 @@ public class ConfigContext {
     private List<AppConfigInfo> getConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
 
-        return RestTemplateUtils.getAppConfig(configCenterUrl, this.reqParamMap());
+        return RestTemplateUtils.getList(configCenterUrl, this.reqParamMap(), AppConfigInfo.class);
     }
 
     /**
@@ -169,14 +170,14 @@ public class ConfigContext {
 
         paramMap.put("keyParam", JsonUtils.toJson(params.values()));
 
-        return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, AppConfigInfo.class);
     }
 
     /**
      * 从配置中心获取动态配置
      * @return
      */
-    public List<AppConfigInfo> longPolling() {
+    public List<MsgInfo> longPolling() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.WATCH_URI;
 
         Map<String, Object> paramMap = this.reqParamMap();
@@ -191,7 +192,7 @@ public class ConfigContext {
         );
         paramMap.put("keys", String.join(",", allKeys));
 
-        return RestTemplateUtils.getAppConfig(configCenterUrl, paramMap);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, MsgInfo.class);
     }
 
     /**
@@ -201,7 +202,7 @@ public class ConfigContext {
     public void refreshServerNode() {
         String serverNodeUrl = this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
 
-        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getServerNode(serverNodeUrl, this.reqParamMap());
+        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getList(serverNodeUrl, this.reqParamMap(), ServerNodeInfo.class);
         if (!CollectionUtils.isEmpty(serverNodeInfos)) {
             this.serverNodeInfos = serverNodeInfos;
         }

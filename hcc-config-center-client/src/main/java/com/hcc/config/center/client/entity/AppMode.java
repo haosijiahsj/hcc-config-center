@@ -8,6 +8,6 @@ package com.hcc.config.center.client.entity;
  */
 public enum AppMode {
 
-    PUSH, PULL
+    LONG_CONNECT, LONG_POLLING
 
 }

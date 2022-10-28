@@ -3,8 +3,10 @@ package com.hcc.config.center.service.zk;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.hcc.config.center.domain.constants.NodePathConstants;
+import com.hcc.config.center.domain.enums.AppModeEnum;
 import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import com.hcc.config.center.domain.vo.PushConfigNodeDataVo;
+import com.hcc.config.center.service.longpolling.LongPollingContext;
 import com.hcc.config.center.service.netty.NettyChannelContext;
 import com.hcc.config.center.service.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +78,14 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         }
 
         PushConfigNodeDataVo nodeDataVo = JsonUtils.toObject(jsonData, PushConfigNodeDataVo.class);
-        if (!NettyChannelContext.existAppCodeClient(nodeDataVo.getAppCode())) {
+
+        boolean exist = false;
+        if (AppModeEnum.LONG_CONNECT.name().equals(nodeDataVo.getAppMode())) {
+            exist = NettyChannelContext.existAppCodeClient(nodeDataVo.getAppCode());
+        } else if (AppModeEnum.LONG_POLLING.name().equals(nodeDataVo.getAppMode())) {
+            exist = LongPollingContext.existAppCodeClient(nodeDataVo.getAppCode());
+        }
+        if (!exist) {
             log.info("当前实例不存在appCode: [{}]的客户端连接，忽略！", nodeDataVo.getAppCode());
             return;
         }
@@ -93,7 +102,13 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
             PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
             BeanUtils.copyProperties(nodeDataVo, msgVo);
 
-            NettyChannelContext.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
+            if (AppModeEnum.LONG_CONNECT.name().equals(nodeDataVo.getAppMode())) {
+                NettyChannelContext.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
+            } else if (AppModeEnum.LONG_POLLING.name().equals(nodeDataVo.getAppMode())) {
+                LongPollingContext.publish(nodeDataVo.getAppCode(), msgVo);
+            } else {
+                throw new IllegalArgumentException(String.format("未知的模式：%s", nodeDataVo.getAppMode()));
+            }
         }
     }
 

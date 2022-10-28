@@ -1,6 +1,6 @@
-package com.hcc.config.center.server.context;
+package com.hcc.config.center.service.longpolling;
 
-import com.hcc.config.center.domain.vo.AppConfigInfo;
+import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import lombok.Data;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -21,7 +21,7 @@ public class LongPollingContext {
 
     private static final Map<String, ConnectEntry> clientIdConnectEntryMap = new ConcurrentHashMap<>();
 
-    public synchronized static void add(String clientId, String appCode, DeferredResult<List<AppConfigInfo>> result, List<String> keys) {
+    public synchronized static void add(String clientId, String appCode, DeferredResult<List<PushConfigClientMsgVo>> result, List<String> keys) {
         ConnectEntry connectEntry = new ConnectEntry();
         connectEntry.setClientId(clientId);
         connectEntry.setAppCode(appCode);
@@ -35,14 +35,25 @@ public class LongPollingContext {
         clientIdConnectEntryMap.remove(clientId);
     }
 
-    public synchronized static void publish(AppConfigInfo appConfigInfo) {
+    public static boolean existAppCodeClient(String appCode) {
+        Collection<ConnectEntry> values = clientIdConnectEntryMap.values();
+        for (ConnectEntry entry : values) {
+            if (entry.getAppCode().equals(appCode)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public synchronized static void publish(String appCode, PushConfigClientMsgVo msg) {
         Collection<ConnectEntry> values = clientIdConnectEntryMap.values();
 
         List<String> removeClientIds = new ArrayList<>();
         for (ConnectEntry entry : values) {
-            if (entry.getAppCode().equals(appConfigInfo.getAppCode())
-                    && entry.getSubKeys().contains(appConfigInfo.getKey())) {
-                entry.getResult().setResult(Collections.singletonList(appConfigInfo));
+            if (entry.getAppCode().equals(appCode)
+                    && entry.getSubKeys().contains(msg.getKey())) {
+                entry.getResult().setResult(Collections.singletonList(msg));
                 removeClientIds.add(entry.getClientId());
             }
         }
@@ -53,7 +64,7 @@ public class LongPollingContext {
     private static class ConnectEntry {
         private String clientId;
         private String appCode;
-        private DeferredResult<List<AppConfigInfo>> result;
+        private DeferredResult<List<PushConfigClientMsgVo>> result;
         private List<String> subKeys;
     }
 

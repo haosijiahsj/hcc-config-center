@@ -109,7 +109,7 @@ public class ApplicationController {
             applicationPo.setSecretKey(secretKey);
             applicationPo.setAppStatus(AppStatusEnum.NOT_ONLINE.name());
             if (param.getAppMode() == null) {
-                applicationPo.setAppMode(AppModeEnum.PUSH.name());
+                applicationPo.setAppMode(AppModeEnum.LONG_CONNECT.name());
             }
             applicationPo.setCreateTime(now);
 

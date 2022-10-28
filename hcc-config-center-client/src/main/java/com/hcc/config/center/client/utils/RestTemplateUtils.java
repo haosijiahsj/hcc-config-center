@@ -1,14 +1,12 @@
 package com.hcc.config.center.client.utils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.hcc.config.center.client.entity.AppConfigInfo;
-import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.RestResult;
-import com.hcc.config.center.client.entity.ServerNodeInfo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,40 +43,39 @@ public class RestTemplateUtils {
         return responseEntity.getBody();
     }
 
-    public static AppInfo getAppInfo(String url, Map<String, Object> paramMap) {
+    public static <T> List<T> getList(String url, Map<String, Object> paramMap, Class<T> targetClass) {
         String body = getString(url, paramMap);
 
-        RestResult<AppInfo> result = JsonUtils.toObject(body, new TypeReference<RestResult<AppInfo>>() {
+        RestResult<Object> result = JsonUtils.toObject(body, new TypeReference<RestResult<Object>>() {
         });
         if (!result.getSuccess()) {
-            throw new IllegalStateException("请求配置中心服务失败：" + result.getMessage());
+            throw new IllegalStateException("url：" + result.getMessage());
         }
 
-        return result.getData();
+        if (result.getData() == null) {
+            return Collections.emptyList();
+        }
+
+        String data = JsonUtils.toJson(result.getData());
+
+        return JsonUtils.toList(data, targetClass);
     }
 
-    public static List<AppConfigInfo> getAppConfig(String url, Map<String, Object> paramMap) {
+    public static <T> T getObject(String url, Map<String, Object> paramMap, Class<T> targetClass) {
         String body = getString(url, paramMap);
 
-        RestResult<List<AppConfigInfo>> result = JsonUtils.toObject(body, new TypeReference<RestResult<List<AppConfigInfo>>>() {
+        RestResult<Object> result = JsonUtils.toObject(body, new TypeReference<RestResult<Object>>() {
         });
         if (!result.getSuccess()) {
-            throw new IllegalStateException("请求配置中心服务失败：" + result.getMessage());
+            throw new IllegalStateException("url：" + result.getMessage());
+        }
+        if (result.getData() == null) {
+            return null;
         }
 
-        return result.getData();
-    }
+        String data = JsonUtils.toJson(result.getData());
 
-    public static List<ServerNodeInfo> getServerNode(String url, Map<String, Object> paramMap) {
-        String body = getString(url, paramMap);
-
-        RestResult<List<ServerNodeInfo>> result = JsonUtils.toObject(body, new TypeReference<RestResult<List<ServerNodeInfo>>>() {
-        });
-        if (!result.getSuccess()) {
-            throw new IllegalStateException("请求配置中心服务失败：" + result.getMessage());
-        }
-
-        return result.getData();
+        return JsonUtils.toObject(data, targetClass);
     }
 
 }

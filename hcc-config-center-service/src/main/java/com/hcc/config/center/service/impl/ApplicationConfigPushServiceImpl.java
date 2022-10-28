@@ -52,6 +52,7 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
 
         PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
         nodeDataVo.setAppCode(applicationPo.getAppCode());
+        nodeDataVo.setAppMode(applicationPo.getAppMode());
         nodeDataVo.setKey(applicationConfigPo.getKey());
         nodeDataVo.setValue(applicationConfigPo.getValue());
         nodeDataVo.setVersion(applicationConfigPo.getVersion());

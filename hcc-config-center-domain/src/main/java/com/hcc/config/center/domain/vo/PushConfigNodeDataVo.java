@@ -16,6 +16,7 @@ public class PushConfigNodeDataVo {
     private String msgType;
     private List<String> clientIds;
     private String appCode;
+    private String appMode;
     private String key;
     private String value;
     private Integer version;

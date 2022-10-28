@@ -6,14 +6,14 @@ import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.AppConfigInfo;
 import com.hcc.config.center.domain.vo.ApplicationVo;
+import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
-import com.hcc.config.center.server.context.LongPollingContext;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
+import com.hcc.config.center.service.longpolling.LongPollingContext;
 import com.hcc.config.center.service.utils.JsonUtils;
 import com.hcc.config.center.service.zk.ZkHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -151,11 +151,11 @@ public class ConfigCenterController {
     }
 
     @GetMapping("/watch")
-    public DeferredResult<List<AppConfigInfo>> watchAppCode(@RequestParam String appCode,
+    public DeferredResult<List<PushConfigClientMsgVo>> watchAppCode(@RequestParam String appCode,
                                                             @RequestParam String secretKey,
                                                             @RequestParam Long timeout,
                                                             @RequestParam List<String> keys) {
-        DeferredResult<List<AppConfigInfo>> result = new DeferredResult<>(timeout, Collections.emptyList());
+        DeferredResult<List<PushConfigClientMsgVo>> result = new DeferredResult<>(timeout, Collections.emptyList());
         this.checkApplication(appCode, secretKey);
 
         String clientId = appCode + "_" + UUID.randomUUID().toString().replaceAll("-", "");

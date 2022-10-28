@@ -1,4 +1,4 @@
-package com.hcc.config.center.server.netty.handler;
+package com.hcc.config.center.server.netty;
 
 import com.hcc.config.center.service.netty.NettyChannelContext;
 import com.hcc.config.center.service.netty.MsgInfo;

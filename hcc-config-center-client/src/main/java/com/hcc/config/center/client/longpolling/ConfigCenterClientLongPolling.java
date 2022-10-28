@@ -78,19 +78,20 @@ public class ConfigCenterClientLongPolling {
      */
     private void doPullConfigAndProcess(boolean isLongPolling) {
         // 拉取配置中心所有动态配置
-        List<AppConfigInfo> dynamicAppConfigInfos;
+        List<MsgInfo> msgInfos;
         if (isLongPolling) {
-            dynamicAppConfigInfos = configContext.longPolling();
+            msgInfos = configContext.longPolling();
         } else {
-            dynamicAppConfigInfos = configContext.getDynamicConfigFromConfigCenter();
+            List<AppConfigInfo> appConfigInfos = configContext.getDynamicConfigFromConfigCenter();
+            msgInfos = this.convertToMsgInfo(appConfigInfos);
         }
-        if (CollectionUtils.isEmpty(dynamicAppConfigInfos)) {
+        if (CollectionUtils.isEmpty(msgInfos)) {
             log.info("配置中心动态配置为空，等待下次执行");
             return;
         }
 
         // 添加到处理队列
-        this.convertToMsgInfo(dynamicAppConfigInfos).forEach(configCenterMsgProcessor::addMsgToQueue);
+        msgInfos.forEach(configCenterMsgProcessor::addMsgToQueue);
     }
 
     /**

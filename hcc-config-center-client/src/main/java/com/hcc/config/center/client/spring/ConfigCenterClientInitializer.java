@@ -39,7 +39,7 @@ public class ConfigCenterClientInitializer {
             return;
         }
 
-        if (AppMode.PUSH.name().equals(configContext.getAppMode())) {
+        if (AppMode.LONG_CONNECT.name().equals(configContext.getAppMode())) {
             ServerNodeInfo serverNode = serverNodeChooser.chooseServerNode(configContext);
             if (serverNode == null) {
                 throw new IllegalStateException("未获取到配置中心服务节点！");
@@ -52,7 +52,7 @@ public class ConfigCenterClientInitializer {
             configCenterClient.setPort(serverNode.getPort());
 
             new Thread(configCenterClient::startUp).start();
-        } else if (AppMode.PULL.name().equals(configContext.getAppMode())) {
+        } else if (AppMode.LONG_POLLING.name().equals(configContext.getAppMode())) {
             ConfigCenterClientLongPolling schedule = new ConfigCenterClientLongPolling(configContext, callBack);
 
             schedule.startUp();

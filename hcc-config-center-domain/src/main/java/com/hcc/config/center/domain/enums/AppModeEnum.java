@@ -8,8 +8,8 @@ package com.hcc.config.center.domain.enums;
  */
 public enum AppModeEnum {
 
-    PUSH("服务器推送模式"),
-    PULL("客户端拉取模式");
+    LONG_CONNECT("长连接"),
+    LONG_POLLING("长轮询");
 
     private final String desc;
 
