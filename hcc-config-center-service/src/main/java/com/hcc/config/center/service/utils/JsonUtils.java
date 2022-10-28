@@ -94,4 +94,18 @@ public class JsonUtils {
             throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
+
+    /**
+     * 美化json输出
+     * @param obj
+     * @return
+     */
+    public static String toJsonForBeauty(Object obj) {
+        try {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+    }
+
 }

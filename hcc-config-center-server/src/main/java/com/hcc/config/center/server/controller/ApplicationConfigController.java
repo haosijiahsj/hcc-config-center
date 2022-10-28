@@ -10,14 +10,16 @@ import com.hcc.config.center.domain.param.ApplicationConfigQueryParam;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.result.PageResult;
+import com.hcc.config.center.domain.vo.ApplicationConfigExportVo;
 import com.hcc.config.center.domain.vo.ApplicationConfigVo;
+import com.hcc.config.center.server.config.IgnoreRestResult;
 import com.hcc.config.center.service.ApplicationConfigPushService;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
 import com.hcc.config.center.service.utils.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,9 +29,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +43,7 @@ import java.util.stream.Collectors;
  * @author hushengjun
  * @date 2022/10/6
  */
+@Slf4j
 @RestController
 @RequestMapping("/application-config")
 public class ApplicationConfigController {
@@ -75,7 +81,6 @@ public class ApplicationConfigController {
     }
 
     @PostMapping("/save")
-    @Transactional(rollbackFor = Exception.class)
     public void save(@RequestBody ApplicationConfigParam param) {
         ApplicationConfigPo applicationConfigPo = new ApplicationConfigPo();
         BeanUtils.copyProperties(param, applicationConfigPo);
@@ -95,15 +100,62 @@ public class ApplicationConfigController {
     }
 
     @PostMapping("/import")
-    private void importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {
+    private String importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {
         ApplicationPo applicationPo = applicationService.getById(applicationId);
         if (applicationPo == null) {
             throw new IllegalArgumentException("应用不存在！");
         }
+
+        String filename = file.getOriginalFilename();
+        List<ApplicationConfigPo> applicationConfigPos = new ArrayList<>();
+        String content;
+        try {
+            content = new String(file.getBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new IllegalStateException("导入异常！", e);
+        }
+        if (StrUtil.isEmpty(content)) {
+            throw new IllegalArgumentException("文件内容为空！");
+        }
+        if (filename.endsWith("json")) {
+            applicationConfigPos.addAll(JsonUtils.toList(content, ApplicationConfigPo.class));
+        } else if (filename.endsWith("yml")) {
+
+        } else if (filename.endsWith("properties")) {
+
+        }
+
+        List<String> duplicateKeys = new ArrayList<>();
+        for (ApplicationConfigPo c : applicationConfigPos) {
+            c.setVersion(c.getVersion() == null ? 1 : c.getVersion());
+            c.setDynamic(c.getDynamic() != null && c.getDynamic());
+            ApplicationConfigPo existConfigPo = applicationConfigService.lambdaQuery()
+                    .select(ApplicationConfigPo::getId)
+                    .eq(ApplicationConfigPo::getApplicationId, applicationId)
+                    .eq(ApplicationConfigPo::getKey, c.getKey())
+                    .one();
+            if (existConfigPo != null) {
+                duplicateKeys.add(c.getKey());
+            }
+        }
+
+        if (!CollUtil.isEmpty(duplicateKeys)) {
+            throw new IllegalArgumentException("导入失败！以下key已存在：[" + String.join(", ", duplicateKeys) + "]");
+        }
+
+        applicationConfigService.saveBatch(applicationConfigPos);
+
+        return null;
     }
 
-    @PostMapping("/export")
-    private void exportConfig(@RequestParam Long applicationId) {
+    @IgnoreRestResult
+    @GetMapping("/export")
+    private void exportConfig(@RequestParam Long applicationId, HttpServletResponse response) {
+        ApplicationPo applicationPo = applicationService.getById(applicationId);
+        if (applicationPo == null) {
+            throw new IllegalArgumentException("应用不存在！");
+        }
+
         LambdaQueryWrapper<ApplicationConfigPo> queryWrapper = new LambdaQueryWrapper<ApplicationConfigPo>()
                 .eq(ApplicationConfigPo::getApplicationId, applicationId)
                 .orderByAsc(ApplicationConfigPo::getDynamic)
@@ -112,22 +164,30 @@ public class ApplicationConfigController {
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.list(queryWrapper);
         if (CollUtil.isEmpty(applicationConfigPos)) {
-            throw new IllegalArgumentException("没有配置可导出");
+            throw new IllegalArgumentException("没有配置可导出！");
         }
-        List<Map<String, Object>> result = applicationConfigPos.stream()
+        List<ApplicationConfigExportVo> result = applicationConfigPos.stream()
                 .map(c -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("key", c.getKey());
-                    map.put("value", c.getValue());
-                    map.put("comment", c.getComment());
-                    map.put("dynamic", c.getDynamic());
-                    map.put("version", c.getVersion());
+                    ApplicationConfigExportVo exportVo = new ApplicationConfigExportVo();
+                    BeanUtils.copyProperties(c, exportVo);
 
-                    return map;
+                    return exportVo;
                 })
                 .collect(Collectors.toList());
 
-        String json = JsonUtils.toJson(result);
+        String json = JsonUtils.toJsonForBeauty(result);
+        String fileName = applicationPo.getAppCode() + "_" + "config.json";
+        try {
+            response.reset();
+            response.setContentType("application/octet-stream;charset=utf-8");
+            response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream.write(json.getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+            outputStream.close();
+        } catch (Exception e) {
+            throw new IllegalStateException("导出失败！", e);
+        }
     }
 
     @GetMapping("/delete/{id}")
