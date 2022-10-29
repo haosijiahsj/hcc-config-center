@@ -3,12 +3,14 @@ package com.hcc.config.center.client.config;
 import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.ProcessFailedCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
+import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.spring.ConfigCenterBeanPostProcessor;
 import com.hcc.config.center.client.spring.ConfigCenterClientInitializer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 /**
  * 配置类，使用@Import注解生效
@@ -52,6 +54,11 @@ public class ConfigCenterConfig {
             configContext.setLongPollingTimeout(longPollingTimeout);
         }
         configContext.initContext();
+
+        if (AppMode.LONG_POLLING.name().equals(configContext.getAppMode())) {
+            Assert.isTrue(configContext.getPullInterval() >= 300, "拉取时间间隔不得小于300s");
+            Assert.isTrue(configContext.getLongPollingTimeout() >= 90, "长轮询超时时间不得小于90s");
+        }
 
         return configContext;
     }

@@ -2,6 +2,7 @@ package com.hcc.config.center.server.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.setting.yaml.YamlUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hcc.config.center.domain.enums.AppModeEnum;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
@@ -33,8 +34,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -83,6 +86,7 @@ public class ApplicationConfigController {
 
     @PostMapping("/save")
     public void save(@RequestBody ApplicationConfigParam param) {
+        param.check();
         ApplicationConfigPo applicationConfigPo = new ApplicationConfigPo();
         BeanUtils.copyProperties(param, applicationConfigPo);
 
@@ -101,49 +105,67 @@ public class ApplicationConfigController {
     }
 
     @PostMapping("/import")
-    private String importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {
+    private void importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (!filename.endsWith("json") && !filename.endsWith("yml") && !filename.endsWith("properties")) {
+            throw new IllegalArgumentException("仅支持json、yml、properties文件的导入！");
+        }
+
         ApplicationPo applicationPo = applicationService.getById(applicationId);
         if (applicationPo == null) {
             throw new IllegalArgumentException("应用不存在！");
         }
 
-        String filename = file.getOriginalFilename();
         List<ApplicationConfigPo> applicationConfigPos = new ArrayList<>();
         try {
             if (filename.endsWith("json")) {
                 String json = new String(file.getBytes(), StandardCharsets.UTF_8);
                 applicationConfigPos.addAll(JsonUtils.toList(json, ApplicationConfigPo.class));
             } else if (filename.endsWith("yml")) {
-
+                Map map = YamlUtil.load(file.getInputStream(), Map.class);
+                map.forEach((k, v) -> {
+                    ApplicationConfigPo configPo = new ApplicationConfigPo();
+                    configPo.setKey(k.toString());
+                    configPo.setValue(v.toString());
+                    applicationConfigPos.add(configPo);
+                });
             } else if (filename.endsWith("properties")) {
                 Properties properties = new Properties();
                 properties.load(file.getInputStream());
+                properties.forEach((k, v) -> {
+                    ApplicationConfigPo configPo = new ApplicationConfigPo();
+                    configPo.setKey(k.toString());
+                    configPo.setValue(v.toString());
+                    applicationConfigPos.add(configPo);
+                });
             }
         } catch (Exception e) {
             throw new IllegalStateException("导入异常！", e);
         }
 
+        LocalDateTime now = LocalDateTime.now();
         List<String> duplicateKeys = new ArrayList<>();
-        for (ApplicationConfigPo c : applicationConfigPos) {
-            c.setVersion(c.getVersion() == null ? 1 : c.getVersion());
-            c.setDynamic(c.getDynamic() != null && c.getDynamic());
+        for (ApplicationConfigPo configPo : applicationConfigPos) {
+            configPo.setApplicationId(applicationId);
+            configPo.setVersion(configPo.getVersion() == null ? 1 : configPo.getVersion());
+            configPo.setDynamic(configPo.getDynamic() != null && configPo.getDynamic());
+            configPo.setCreateTime(now);
+            configPo.setUpdateTime(now);
             ApplicationConfigPo existConfigPo = applicationConfigService.lambdaQuery()
                     .select(ApplicationConfigPo::getId)
                     .eq(ApplicationConfigPo::getApplicationId, applicationId)
-                    .eq(ApplicationConfigPo::getKey, c.getKey())
+                    .eq(ApplicationConfigPo::getKey, configPo.getKey())
                     .one();
             if (existConfigPo != null) {
-                duplicateKeys.add(c.getKey());
+                duplicateKeys.add(configPo.getKey());
             }
         }
 
         if (!CollUtil.isEmpty(duplicateKeys)) {
-            throw new IllegalArgumentException("导入失败！以下key已存在：[" + String.join(", ", duplicateKeys) + "]");
+            throw new IllegalArgumentException(String.format("key: [%s]已存在", String.join(", ", duplicateKeys)));
         }
 
-        applicationConfigService.saveBatch(applicationConfigPos);
-
-        return null;
+        applicationConfigPos.forEach(applicationConfigService::saveOrUpdateConfig);
     }
 
     @IgnoreRestResult

@@ -44,6 +44,7 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
         ApplicationConfigHistoryPo historyPo = new ApplicationConfigHistoryPo();
         if (applicationConfigPo.getId() == null) {
             ApplicationConfigPo existConfigPo = this.lambdaQuery()
+                    .select(ApplicationConfigPo::getId)
                     .eq(ApplicationConfigPo::getApplicationId, applicationConfigPo.getApplicationId())
                     .eq(ApplicationConfigPo::getKey, applicationConfigPo.getKey())
                     .one();

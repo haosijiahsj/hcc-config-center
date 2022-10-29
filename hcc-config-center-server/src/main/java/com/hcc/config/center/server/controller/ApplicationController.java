@@ -92,6 +92,8 @@ public class ApplicationController {
 
     @PostMapping("/save")
     public void save(@RequestBody ApplicationParam param) {
+        param.check();
+
         ApplicationPo applicationPo = new ApplicationPo();
         BeanUtils.copyProperties(param, applicationPo);
 

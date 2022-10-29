@@ -38,10 +38,13 @@ public class ConfigContext {
     private String serverUrl;
     private boolean enableDynamicPush = false;
     /**
-     * 拉取时间间隔，默认5分钟
+     * 拉取时间间隔，默认5分钟，单位秒
      */
     private Integer pullInterval = 300;
-    private Integer longPollingTimeout = 90000;
+    /**
+     * 轮询hold时间，默认90秒，单位秒
+     */
+    private Integer longPollingTimeout = 90;
 
     /**
      * 模式：推 OR 拉
