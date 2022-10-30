@@ -40,7 +40,7 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
         LocalDateTime now = LocalDateTime.now();
         applicationConfigPo.setUpdateTime(now);
 
-        boolean changed = true;
+        boolean valueChanged = true;
         ApplicationConfigHistoryPo historyPo = new ApplicationConfigHistoryPo();
         if (applicationConfigPo.getId() == null) {
             ApplicationConfigPo existConfigPo = this.lambdaQuery()
@@ -64,20 +64,18 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
             historyPo.setVersion(existConfigPo.getVersion() + 1);
             historyPo.setOperateType(AppConfigOperateTypeEnum.UPDATE.name());
 
-            boolean needUpdateVersion = true;
             if (existConfigPo.getValue() == null && applicationConfigPo.getValue() == null) {
-                needUpdateVersion = false;
-                changed = false;
+                valueChanged = false;
             }
             if (existConfigPo.getValue() != null && existConfigPo.getValue().equals(applicationConfigPo.getValue())) {
-                needUpdateVersion = false;
-                changed = false;
+                valueChanged = false;
             }
 
             this.lambdaUpdate()
                     .set(ApplicationConfigPo::getValue, applicationConfigPo.getValue())
                     .set(ApplicationConfigPo::getComment, applicationConfigPo.getComment())
-                    .setSql(needUpdateVersion, "version = version + 1")
+                    .set(ApplicationConfigPo::getUpdateTime, applicationConfigPo.getUpdateTime())
+                    .setSql(valueChanged, "version = version + 1")
                     .eq(ApplicationConfigPo::getId, applicationConfigPo.getId())
                     .update();
         }
@@ -86,11 +84,11 @@ public class ApplicationConfigServiceImpl extends BaseServiceImpl<ApplicationCon
         historyPo.setCreateTime(now);
 
         // 记录历史
-        if (changed) {
+        if (valueChanged) {
             applicationConfigHistoryService.save(historyPo);
         }
 
-        return changed;
+        return valueChanged;
     }
 
     private ApplicationConfigPo checkApplicationConfigExist(Long id) {
