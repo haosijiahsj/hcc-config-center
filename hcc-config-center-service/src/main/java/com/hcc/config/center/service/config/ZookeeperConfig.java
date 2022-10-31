@@ -23,7 +23,7 @@ public class ZookeeperConfig {
 
     @Bean(initMethod = "start", destroyMethod = "close")
     public CuratorFramework curatorFramework() {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(3000, 5);
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(configCenterProperties.getZkAddress())
                 .sessionTimeoutMs(configCenterProperties.getZkSessionTimeOut())

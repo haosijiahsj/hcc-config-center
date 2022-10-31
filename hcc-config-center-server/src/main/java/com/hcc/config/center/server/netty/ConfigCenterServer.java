@@ -4,6 +4,7 @@ import com.hcc.config.center.service.utils.ApplicationContextUtils;
 import com.hcc.config.center.service.zk.ZkHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -39,16 +40,7 @@ public class ConfigCenterServer {
                     .childHandler(new ConfigCenterServerInitializer());
 
             ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
-            channelFuture.addListener(future -> {
-                if (channelFuture.isSuccess()) {
-                    // 注册到zk
-                    ZkHandler zkHandler = ApplicationContextUtils.getBean(ZkHandler.class);
-                    zkHandler.registerServerNode(host, port);
-                    log.info("绑定端口：[{}]成功！启动完成！", port);
-                } else {
-                    log.info("绑定端口：[{}]失败！", port);
-                }
-            });
+            channelFuture.addListener(this.channelFutureListener());
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
             throw new IllegalStateException("动态推送服务启动失败！", e);
@@ -56,6 +48,23 @@ public class ConfigCenterServer {
             bossEventLoopGroup.shutdownGracefully();
             workerEventLoopGroup.shutdownGracefully();
         }
+    }
+
+    /**
+     * ChannelFuture监听器
+     * @return
+     */
+    private ChannelFutureListener channelFutureListener() {
+        return future -> {
+            if (future.isSuccess()) {
+                // 注册到zk
+                ZkHandler zkHandler = ApplicationContextUtils.getBean(ZkHandler.class);
+                zkHandler.registerServerNode(host, port);
+                log.info("绑定端口：[{}]成功！启动完成！", port);
+            } else {
+                log.info("绑定端口：[{}]失败！", port);
+            }
+        };
     }
 
 }

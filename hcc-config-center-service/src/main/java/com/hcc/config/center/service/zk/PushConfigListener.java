@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 
 /**
  * PushConfigListener
@@ -57,7 +58,7 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
 
                     if (TreeCacheEvent.Type.NODE_ADDED.equals(type)
                             || TreeCacheEvent.Type.NODE_UPDATED.equals(type)) {
-                        String jsonData = new String(event.getData().getData());
+                        String jsonData = new String(event.getData().getData(), StandardCharsets.UTF_8);
                         log.info("节点{}变化，变化类型：{}，值：{}", path, type, jsonData);
                         this.pushToClient(path, jsonData);
                     } else {

@@ -46,7 +46,7 @@ public class ZkHandler {
                 curatorFramework.create()
                         .creatingParentsIfNeeded()
                         .withMode(CreateMode.EPHEMERAL)
-                        .forPath(path, data.getBytes());
+                        .forPath(path, data.getBytes(StandardCharsets.UTF_8));
             } else {
                 curatorFramework.setData()
                         .forPath(path, data.getBytes(StandardCharsets.UTF_8));
