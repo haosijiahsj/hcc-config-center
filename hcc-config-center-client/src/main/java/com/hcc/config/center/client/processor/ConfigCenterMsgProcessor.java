@@ -122,11 +122,18 @@ public class ConfigCenterMsgProcessor {
 
         try {
             if (field != null) {
-                field.setAccessible(true);
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
                 field.set(bean, ConvertUtils.convertValueToTargetType(newValue, field.getType()));
+                field.setAccessible(field.isAccessible());
             }
             if (method != null) {
+                if (!method.isAccessible()) {
+                    method.setAccessible(true);
+                }
                 method.invoke(bean, newValue);
+                method.setAccessible(method.isAccessible());
             }
 
             log.info("类：[{}]，{}：[{}]，key: [{}]，value: [{}]处理完成", bean.getClass().getName(), tmpTag, name, key, newValue);

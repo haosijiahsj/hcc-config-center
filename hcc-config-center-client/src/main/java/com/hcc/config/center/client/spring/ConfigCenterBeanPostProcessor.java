@@ -60,9 +60,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             if (listenConfig == null) {
                 continue;
             }
-            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())
-                    || Modifier.isFinal(method.getModifiers())) {
-                throw new IllegalStateException(String.format("类：[%s]，方法：[%s]不能使用private、final、static修饰！",
+            if (Modifier.isStatic(method.getModifiers()) || Modifier.isFinal(method.getModifiers())) {
+                throw new IllegalStateException(String.format("类：[%s]，方法：[%s]不能使用final、static修饰！",
                         bean.getClass().getName(), method.getName()));
             }
             if (method.getParameterCount() != 1 || !String.class.equals(method.getParameterTypes()[0])) {
@@ -99,8 +98,12 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         String configValue = appConfigInfo.getValue();
         try {
-            field.setAccessible(true);
+            if (!field.isAccessible()) {
+                field.setAccessible(true);
+            }
             field.set(bean, ConvertUtils.convertValueToTargetType(configValue, field.getType()));
+            field.setAccessible(field.isAccessible());
+
             log.info("类：[{}]，字段：[{}]，key: [{}]，注入值：[{}]完成", bean.getClass().getName(), field.getName(), configKey, configValue);
         } catch (IllegalAccessException e) {
             throw new IllegalArgumentException(e);
@@ -121,7 +124,12 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         String configValue = appConfigInfo.getValue();
         try {
+            if (!method.isAccessible()) {
+                method.setAccessible(true);
+            }
             method.invoke(bean, configValue);
+            method.setAccessible(method.isAccessible());
+
             log.info("类：[{}]，方法：[{}]，key: [{}]，value：[{}]，调用成功", bean.getClass().getName(), method.getName(), configKey, configValue);
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
