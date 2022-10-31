@@ -20,7 +20,5 @@ public class DynamicConfigRefInfo {
     private Method method;
 
     private String key;
-    private String value;
-    private Integer version;
 
 }

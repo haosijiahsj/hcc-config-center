@@ -163,7 +163,8 @@ public class ConfigContext {
             }
         });
         dynamicConfigRefInfos.stream()
-                .filter(f -> f.getVersion() == null)
+                // 表示引用了字段，但未在配置中心配置
+                .filter(f -> configMap.get(f.getKey()) == null)
                 .forEach(fieldInfo -> {
                     AppConfigInfo configInfo = new AppConfigInfo();
                     configInfo.setKey(fieldInfo.getKey());

@@ -8,6 +8,7 @@ import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ProcessDynamicConfigFailed;
 import com.hcc.config.center.client.utils.ConvertUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -77,58 +78,47 @@ public class ConfigCenterMsgProcessor {
     private void process() {
         MsgInfo msgInfo = this.takeMsgInfo();
 
+        String key = msgInfo.getKey();
+        AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
+        AppConfigInfo oldConfigInfo = null;
+        if (appConfigInfo != null) {
+            oldConfigInfo = new AppConfigInfo();
+            BeanUtils.copyProperties(appConfigInfo, oldConfigInfo);
+        }
         if (!this.needProcess(msgInfo)) {
             return;
         }
 
-        String key = msgInfo.getKey();
-
         // 处理动态配置
         List<DynamicConfigRefInfo> dynamicConfigRefInfos = keyDynamicConfigRefInfoMap.get(key);
-        if (!CollectionUtils.isEmpty(dynamicConfigRefInfos)) {
-            dynamicConfigRefInfos.forEach(d -> this.processDynamicConfig(msgInfo, d));
-        } else {
+        if (CollectionUtils.isEmpty(dynamicConfigRefInfos)) {
             if (log.isDebugEnabled()) {
                 // 没有动态字段
                 log.debug("key: [{}]没有字段或方法引用，忽略处理", key);
             }
+            return;
         }
+
+        AppConfigInfo finalOldConfigInfo = oldConfigInfo;
+        dynamicConfigRefInfos.forEach(d -> this.processDynamicConfig(msgInfo, finalOldConfigInfo, d));
     }
 
     /**
      * 处理动态字段
      * @param msgInfo
+     * @param appConfigInfo
      * @param dynamicConfigRefInfo
      */
-    private void processDynamicConfig(MsgInfo msgInfo, DynamicConfigRefInfo dynamicConfigRefInfo) {
+    private void processDynamicConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, DynamicConfigRefInfo dynamicConfigRefInfo) {
         String key = msgInfo.getKey();
         String newValue = msgInfo.getValue();
-        Integer newVersion = msgInfo.getVersion();
-        Boolean forceUpdate = msgInfo.getForceUpdate();
 
         Field field = dynamicConfigRefInfo.getField();
         Method method = dynamicConfigRefInfo.getMethod();
         Object bean = dynamicConfigRefInfo.getBean();
-        Integer dynCurVersion = dynamicConfigRefInfo.getVersion();
-        String dynCurValue = dynamicConfigRefInfo.getValue();
 
         String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
         String name = field != null ? field.getName() : method != null ? method.getName() : "";
-        if (dynCurVersion != null && dynCurVersion >= newVersion && !forceUpdate) {
-            if (log.isDebugEnabled()) {
-                log.debug("类：[{}]，{}：[{}]，key: [{}]，value: [{}]，当前版本[{}]>=服务器版本[{}]，忽略处理",
-                        bean.getClass().getName(), tmpTag, name, key, newValue, dynCurVersion, newVersion);
-            }
-            return;
-        }
-
-        if ((dynCurValue == null && newValue == null) || (dynCurValue != null && dynCurValue.equals(newValue))) {
-            if (log.isDebugEnabled()) {
-                log.debug("类：[{}]，{}：[{}]，key: [{}]，当前值[{}]与服务器值[{}]一致，忽略处理",
-                        bean.getClass().getName(), tmpTag, name, key, dynCurValue, newValue);
-            }
-            return;
-        }
 
         try {
             if (field != null) {
@@ -138,8 +128,6 @@ public class ConfigCenterMsgProcessor {
             if (method != null) {
                 method.invoke(bean, newValue);
             }
-            dynamicConfigRefInfo.setVersion(newVersion);
-            dynamicConfigRefInfo.setValue(newValue);
 
             log.info("类：[{}]，{}：[{}]，key: [{}]，value: [{}]处理完成", bean.getClass().getName(), tmpTag, name, key, newValue);
         } catch (Exception e) {
@@ -150,7 +138,7 @@ public class ConfigCenterMsgProcessor {
             failedInfo.setField(field);
             failedInfo.setMethod(method);
             failedInfo.setKey(key);
-            failedInfo.setOldValue(dynCurValue);
+            failedInfo.setOldValue(appConfigInfo == null ? null : appConfigInfo.getValue());
             failedInfo.setNewValue(newValue);
             callBack.callBack(failedInfo, e);
         }
@@ -173,8 +161,13 @@ public class ConfigCenterMsgProcessor {
             return false;
         }
 
-        // 本地值刷新
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
+        if (appConfigInfo != null && appConfigInfo.getVersion() >= newVersion && !msgInfo.getForceUpdate()) {
+            log.warn("key: [{}]当前版本：[{}] >= 服务器版本：[{}]，忽略更新", key, appConfigInfo.getVersion(), newVersion);
+            return false;
+        }
+
+        // 本地值刷新
         if (appConfigInfo == null || appConfigInfo.getVersion() < newVersion) {
             if (appConfigInfo == null) {
                 appConfigInfo = new AppConfigInfo();

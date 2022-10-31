@@ -142,15 +142,11 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicConfigRefInfo.setBeanName(beanName);
         dynamicConfigRefInfo.setBean(bean);
 
-        // 将value和version放进去
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
         if (appConfigInfo != null) {
             if (!appConfigInfo.getDynamic()) {
                 log.warn("类：[{}]，字段：[{}]，key: [{}]，不是动态配置！", bean.getClass().getName(), field.getName(), configKey);
             }
-
-            dynamicConfigRefInfo.setValue(appConfigInfo.getValue());
-            dynamicConfigRefInfo.setVersion(appConfigInfo.getVersion());
         }
 
         configContext.addDynamicConfigInfo(dynamicConfigRefInfo);
