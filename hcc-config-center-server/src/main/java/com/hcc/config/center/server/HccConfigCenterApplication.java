@@ -10,6 +10,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 
+import javax.annotation.PreDestroy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -25,6 +26,8 @@ public class HccConfigCenterApplication implements ApplicationListener<Applicati
 
     @Autowired
     private ConfigCenterProperties configCenterProperties;
+
+    private ConfigCenterServer configCenterServer;
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(HccConfigCenterApplication.class)
@@ -43,9 +46,16 @@ public class HccConfigCenterApplication implements ApplicationListener<Applicati
             throw new IllegalStateException("获取host异常", e);
         }
         // 启动动态配置推送服务
-        ConfigCenterServer configCenterServer = new ConfigCenterServer(host, configCenterProperties.getServerPort());
+        configCenterServer = new ConfigCenterServer(host, configCenterProperties.getServerPort());
 
         new Thread(configCenterServer::startUp).start();
+    }
+
+    @PreDestroy
+    private void stopServer() {
+        if (configCenterServer != null) {
+            configCenterServer.stop();
+        }
     }
 
 }

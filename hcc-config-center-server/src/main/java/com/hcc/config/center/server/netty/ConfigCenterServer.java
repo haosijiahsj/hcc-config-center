@@ -9,7 +9,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -19,17 +18,24 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2022/10/11
  */
 @Slf4j
-@AllArgsConstructor
 public class ConfigCenterServer {
 
     private final String host;
     private final int port;
 
+    private EventLoopGroup bossEventLoopGroup;
+    private EventLoopGroup workerEventLoopGroup;
+
+    public ConfigCenterServer(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
     public void startUp() {
         log.info("开始启动动态推送服务");
 
-        EventLoopGroup bossEventLoopGroup = new NioEventLoopGroup();
-        EventLoopGroup workerEventLoopGroup = new NioEventLoopGroup();
+        bossEventLoopGroup = new NioEventLoopGroup();
+        workerEventLoopGroup = new NioEventLoopGroup();
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         try {
@@ -48,6 +54,19 @@ public class ConfigCenterServer {
             bossEventLoopGroup.shutdownGracefully();
             workerEventLoopGroup.shutdownGracefully();
         }
+    }
+
+    /**
+     * 关闭netty服务
+     */
+    public void stop() {
+        if (bossEventLoopGroup != null) {
+            bossEventLoopGroup.shutdownGracefully();
+        }
+        if (workerEventLoopGroup != null) {
+            workerEventLoopGroup.shutdownGracefully();
+        }
+        log.info("推送服务器关闭！");
     }
 
     /**
