@@ -41,7 +41,9 @@ public class ConfigCenterClientLongPolling {
     private void startUpLongPolling() {
         Runnable longPollingRunnable = () -> {
             while (true) {
-                log.info("开始建立长连接拉取动态配置任务！");
+                if (log.isDebugEnabled()) {
+                    log.debug("开始建立长连接拉取动态配置任务！");
+                }
                 try {
                     this.doPullConfigAndProcess(true);
                 } catch (Exception e) {
@@ -58,7 +60,9 @@ public class ConfigCenterClientLongPolling {
         Runnable runnable = () -> {
             while (true) {
                 this.sleepForSecond(configContext.getPullInterval());
-                log.info("开始执行拉取动态配置任务！");
+                if (log.isDebugEnabled()) {
+                    log.debug("开始执行拉取动态配置任务！");
+                }
                 try {
                     this.doPullConfigAndProcess(false);
                 } catch (Exception e) {
@@ -66,7 +70,9 @@ public class ConfigCenterClientLongPolling {
                 }
 
                 // 休眠等待下次执行
-                log.info("本次任务处理完成！休眠{}s后执行！", configContext.getPullInterval());
+                if (log.isDebugEnabled()) {
+                    log.debug("本次任务处理完成！休眠{}s后执行！", configContext.getPullInterval());
+                }
             }
         };
 
@@ -86,7 +92,9 @@ public class ConfigCenterClientLongPolling {
             msgInfos = this.convertToMsgInfo(appConfigInfos);
         }
         if (CollectionUtils.isEmpty(msgInfos)) {
-            log.info("配置中心动态配置为空，等待下次执行");
+            if (log.isDebugEnabled()) {
+                log.debug("配置中心动态配置为空，等待下次执行");
+            }
             return;
         }
 
