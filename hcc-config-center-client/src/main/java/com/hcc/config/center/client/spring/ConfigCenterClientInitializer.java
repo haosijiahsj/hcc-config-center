@@ -6,8 +6,8 @@ import com.hcc.config.center.client.connect.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
-import com.hcc.config.center.client.netty.ConfigCenterClient;
 import com.hcc.config.center.client.longpolling.ConfigCenterClientLongPolling;
+import com.hcc.config.center.client.netty.ConfigCenterClient;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,12 +22,15 @@ public class ConfigCenterClientInitializer {
     private final ConfigContext configContext;
     private final ProcessFailedCallBack callBack;
 
-    private final ServerNodeChooser serverNodeChooser;
+    private ServerNodeChooser serverNodeChooser;
+    private ConfigCenterClient configCenterClient;
 
     public ConfigCenterClientInitializer(ConfigContext configContext, ProcessFailedCallBack callBack) {
         this.configContext = configContext;
         this.callBack = callBack;
-        this.serverNodeChooser = new DefaultServerNodeChooser();
+        if (AppMode.LONG_CONNECT.name().equals(configContext.getAppMode())) {
+            this.serverNodeChooser = new DefaultServerNodeChooser();
+        }
     }
 
     /**
@@ -45,12 +48,7 @@ public class ConfigCenterClientInitializer {
                 throw new IllegalStateException("未获取到配置中心服务节点！");
             }
 
-            ConfigCenterClient configCenterClient = new ConfigCenterClient();
-            configCenterClient.setCallBack(callBack);
-            configCenterClient.setConfigContext(configContext);
-            configCenterClient.setHost(serverNode.getHost());
-            configCenterClient.setPort(serverNode.getPort());
-
+            configCenterClient = new ConfigCenterClient(serverNode.getHost(), serverNode.getPort(), configContext, callBack);
             new Thread(configCenterClient::startUp).start();
         } else if (AppMode.LONG_POLLING.name().equals(configContext.getAppMode())) {
             ConfigCenterClientLongPolling schedule = new ConfigCenterClientLongPolling(configContext, callBack);
@@ -58,6 +56,15 @@ public class ConfigCenterClientInitializer {
             schedule.startUp();
         } else {
             throw new IllegalStateException(String.format("启动异常，不支持的模式：[%s]", configContext.getAppMode()));
+        }
+    }
+
+    /**
+     * 关闭客户端
+     */
+    public void stopClient() {
+        if (configCenterClient != null) {
+            configCenterClient.stop();
         }
     }
 

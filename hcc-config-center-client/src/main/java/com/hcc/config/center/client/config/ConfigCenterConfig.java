@@ -90,7 +90,7 @@ public class ConfigCenterConfig {
      * @param callBackObjectProvider
      * @return
      */
-    @Bean
+    @Bean(destroyMethod = "stopClient")
     public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessFailedCallBack> callBackObjectProvider) {
         ProcessFailedCallBack callBack = callBackObjectProvider.getIfUnique(() -> new ProcessFailedCallBack() {});
         ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack);
