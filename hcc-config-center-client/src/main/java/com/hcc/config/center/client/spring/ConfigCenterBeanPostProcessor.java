@@ -156,7 +156,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             log.warn("类：[{}]，{}：[{}]，使用的配置key: [{}]，不是动态配置！", bean.getClass().getName(), tmpTag, name, configKey);
         }
 
-        configContext.addDynamicConfigInfo(dynamicConfigRefInfo);
+        configContext.addDynamicConfigRefInfo(dynamicConfigRefInfo);
     }
 
 }

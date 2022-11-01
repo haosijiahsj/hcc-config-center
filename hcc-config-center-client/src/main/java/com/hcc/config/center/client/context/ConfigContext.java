@@ -241,7 +241,7 @@ public class ConfigContext {
      * 添加动态字段信息
      * @param dynamicConfigRefInfo
      */
-    public synchronized void addDynamicConfigInfo(DynamicConfigRefInfo dynamicConfigRefInfo) {
+    public synchronized void addDynamicConfigRefInfo(DynamicConfigRefInfo dynamicConfigRefInfo) {
         dynamicConfigRefInfos.add(dynamicConfigRefInfo);
     }
 
