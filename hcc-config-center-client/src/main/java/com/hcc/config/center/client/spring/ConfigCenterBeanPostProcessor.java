@@ -150,10 +150,10 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicConfigRefInfo.setBean(bean);
 
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
-        if (appConfigInfo != null) {
-            if (!appConfigInfo.getDynamic()) {
-                log.warn("类：[{}]，字段：[{}]，key: [{}]，不是动态配置！", bean.getClass().getName(), field.getName(), configKey);
-            }
+        if (appConfigInfo != null && !appConfigInfo.getDynamic()) {
+            String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
+            String name = field != null ? field.getName() : method != null ? method.getName() : "";
+            log.warn("类：[{}]，{}：[{}]，使用的配置key: [{}]，不是动态配置！", bean.getClass().getName(), tmpTag, name, configKey);
         }
 
         configContext.addDynamicConfigInfo(dynamicConfigRefInfo);
