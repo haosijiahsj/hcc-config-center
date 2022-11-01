@@ -92,8 +92,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
         if (appConfigInfo == null) {
-            log.warn("key: [{}]，未在配置中心配置！", configKey);
-            return;
+            // 未配置时直接报错
+            throw new IllegalArgumentException(String.format("key: [%s]，未在配置中心配置！", configKey));
         }
         String configValue = appConfigInfo.getValue();
         try {
@@ -118,8 +118,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     private void invokeMethod(String configKey, Object bean, Method method) {
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
         if (appConfigInfo == null) {
-            log.warn("key: [{}]，未在配置中心配置！", configKey);
-            return;
+            // 未配置时直接报错
+            throw new IllegalArgumentException(String.format("key: [%s]，未在配置中心配置！", configKey));
         }
         String configValue = appConfigInfo.getValue();
         try {
