@@ -31,29 +31,39 @@ import java.util.stream.Collectors;
 public class ConfigContext {
 
     /**
-     * 基本配置
+     * 应用编码
      */
     private String appCode;
+    /**
+     * 应用密钥
+     */
     private String secretKey;
+    /**
+     * 服务地址，可含端口
+     */
     private String serverUrl;
+    /**
+     * 是否开启动态推送，为false则无法与服务端建立连接，无法获取动态配置变更
+     */
     private boolean enableDynamicPush = false;
     /**
-     * 拉取时间间隔，默认5分钟，单位秒
+     * 长轮询拉取时间间隔，默认5分钟，单位秒
      */
     private Integer pullInterval = 300;
     /**
-     * 轮询hold时间，默认90秒，单位秒
+     * 长轮询轮询hold时间，默认90秒，单位秒
      */
     private Integer longPollingTimeout = 90;
 
-    /**
-     * 模式：推 OR 拉
-     */
+    // 模式：长连接 OR 长轮询，决定客户端以何种方式连接到推送服务器
     private String appMode;
-
+    // 所有配置
     private Map<String, AppConfigInfo> configMap = new HashMap<>();
+    // 所有配置，key value形式
     private Map<String, String> configKeyValueMap = new HashMap<>();
+    // 服务节点信息，建立长连接使用
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
+    // 动态字段引用信息，使用DynamicValue注解的字段、ListenConfig注解的方法
     private List<DynamicConfigRefInfo> dynamicConfigRefInfos = new ArrayList<>();
 
     /**
@@ -82,25 +92,40 @@ public class ConfigContext {
      * 初始化上下文，从配置中心获取配置
      */
     public void initContext() {
+        // 初始化获取配置中心所有配置
         List<AppConfigInfo> appConfigInfos = this.getConfigFromConfigCenter();
-
-        Map<String, String> staticConfigMap = new HashMap<>();
-        Map<String, String> dynamicConfigMap = new HashMap<>();
         appConfigInfos.forEach(appConfigInfo -> {
             this.configKeyValueMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
             this.configMap.put(appConfigInfo.getKey(), appConfigInfo);
-            if (appConfigInfo.getDynamic()) {
-                dynamicConfigMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
-            } else {
-                staticConfigMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
-            }
         });
-        this.getModeFromConfigCenter();
+
+        // 获取应用模式
+        this.appMode = this.getModeFromConfigCenter();
+
+        // 若模式是长连接则获取服务节点
         if (AppMode.LONG_CONNECT.name().equals(appMode)) {
             this.refreshServerNode();
         }
 
+        // 打印初始化日志
+        this.printInitLog();
+    }
+
+    /**
+     * 打印初始化日志
+     */
+    private void printInitLog() {
+        Map<String, String> staticConfigMap = new HashMap<>();
+        Map<String, String> dynamicConfigMap = new HashMap<>();
+        configMap.forEach((k, v) -> {
+            if (v.getDynamic()) {
+                dynamicConfigMap.put(v.getKey(), v.getValue());
+            } else {
+                staticConfigMap.put(v.getKey(), v.getValue());
+            }
+        });
         // 打印所有配置信息
+        log.info("应用：{}，模式为：{}", appCode, appMode);
         log.info("静态配置：\n{}", JsonUtils.toJsonForBeauty(staticConfigMap));
         log.info("动态配置：\n{}", JsonUtils.toJsonForBeauty(dynamicConfigMap));
         if (AppMode.LONG_CONNECT.name().equals(appMode)) {
@@ -123,14 +148,14 @@ public class ConfigContext {
     /**
      * 获取应用mode
      */
-    private void getModeFromConfigCenter() {
+    private String getModeFromConfigCenter() {
         AppInfo appInfo = RestTemplateUtils.getObject(this.getConfigCenterUrl() + Constants.APP_INFO_URI,
                 this.reqParamMap(), AppInfo.class);
-        if (appInfo == null) {
-            throw new IllegalStateException(String.format("未获取到应用：%s", appCode));
+        if (appInfo == null || appInfo.getAppMode() == null) {
+            throw new IllegalStateException(String.format("未获取到应用：[%s]的模式，请检查应用配置", appCode));
         }
 
-        this.appMode = appInfo.getAppMode();
+        return appInfo.getAppMode();
     }
 
     /**

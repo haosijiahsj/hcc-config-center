@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -86,7 +85,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param field
      */
     private void injectConfigValue(String configKey, Object bean, Field field) {
-        Value value = AnnotationUtils.findAnnotation(field.getType(), Value.class);
+        Value value = field.getAnnotation(Value.class);
         if (value != null) {
             // 使用spring的value注解后，不进行注入，由spring进行注入
             return;
