@@ -79,6 +79,7 @@ public class ConfigCenterController {
                 .map(c -> {
                     AppConfigInfo appConfigInfo = new AppConfigInfo();
                     BeanUtils.copyProperties(c, appConfigInfo);
+                    appConfigInfo.setAppCode(applicationPo.getAppCode());
 
                     return appConfigInfo;
                 })
@@ -108,7 +109,7 @@ public class ConfigCenterController {
         for (AppConfigInfo configParam : configParams) {
             ApplicationConfigPo applicationConfigPo = keyApplicationConfigMap.get(configParam.getKey());
             AppConfigInfo appConfigInfo = new AppConfigInfo();
-            appConfigInfo.setAppCode(appCode);
+            appConfigInfo.setAppCode(applicationPo.getAppCode());
             appConfigInfo.setDynamic(true);
             appConfigInfo.setKey(configParam.getKey());
 

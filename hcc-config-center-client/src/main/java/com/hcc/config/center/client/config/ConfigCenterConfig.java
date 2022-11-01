@@ -38,6 +38,7 @@ public class ConfigCenterConfig {
         String secretKey = environment.getRequiredProperty("config.center.secretKey");
         String serverUrl = environment.getRequiredProperty("config.center.serverUrl");
         Boolean enableDynamicPush = environment.getProperty("config.center.enableDynamicPush", Boolean.class);
+        Boolean checkConfigExist = environment.getProperty("config.center.checkConfigExist", Boolean.class);
         Integer pullInterval = environment.getProperty("config.center.pullInterval", Integer.class);
         Integer longPollingTimeout = environment.getProperty("config.center.longPollingTimeout", Integer.class);
 
@@ -46,6 +47,9 @@ public class ConfigCenterConfig {
         configContext.setServerUrl(serverUrl);
         if (enableDynamicPush != null) {
             configContext.setEnableDynamicPush(enableDynamicPush);
+        }
+        if (checkConfigExist != null) {
+            configContext.setCheckConfigExist(checkConfigExist);
         }
         if (pullInterval != null) {
             configContext.setPullInterval(pullInterval);

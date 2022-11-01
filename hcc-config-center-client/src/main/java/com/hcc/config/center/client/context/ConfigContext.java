@@ -47,6 +47,10 @@ public class ConfigContext {
      */
     private boolean enableDynamicPush = false;
     /**
+     * 是否检查配置在配置中心存在，为true则检查不存在抛出异常
+     */
+    private boolean checkConfigExist = true;
+    /**
      * 长轮询拉取时间间隔，默认5分钟，单位秒
      */
     private Integer pullInterval = 300;
