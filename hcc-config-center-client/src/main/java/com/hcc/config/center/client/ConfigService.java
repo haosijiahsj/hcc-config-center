@@ -43,14 +43,8 @@ public class ConfigService {
      * @param <T>
      * @return
      */
-    @SuppressWarnings("unchecked")
     public <T> T getConfigValue(String key, Class<T> targetClass) {
-        String configValue = this.getConfigValue(key);
-        if (configValue == null) {
-            return null;
-        }
-
-        return (T) ConvertUtils.convertValueToTargetType(configValue, targetClass);
+        return ConvertUtils.convertValueToTargetObject(this.getConfigValue(key), targetClass);
     }
 
     /**

@@ -4,16 +4,12 @@ import com.hcc.config.center.client.connect.DefaultServerNodeChooser;
 import com.hcc.config.center.client.connect.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
-import com.hcc.config.center.client.netty.ConfigCenterClient;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,8 +43,7 @@ public class ConfigCenterIdleStateHandler extends IdleStateHandler {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
+    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
         log.error("服务端离线：{}，尝试重连！", ctx.channel().remoteAddress());
 
         Runnable runnable = () -> {

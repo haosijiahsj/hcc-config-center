@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 /**
  * PushConfigListener
@@ -32,6 +33,8 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Component
 public class PushConfigListener implements ApplicationListener<ApplicationReadyEvent>, DisposableBean {
+
+    private static final Pattern pathPattern = Pattern.compile("^" + NodePathConstants.PUSH_CONFIG_PATH +"/.+/.+$");
 
     @Autowired
     private CuratorFramework curatorFramework;
@@ -51,8 +54,9 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
                         return;
                     }
                     String path = event.getData().getPath();
-                    if (path.equals(NodePathConstants.PUSH_CONFIG_PATH)) {
-                        log.info("节点{}变化，变化类型：{}，忽略", path, type);
+                    if (!pathPattern.matcher(path).matches()) {
+                        // 只有末级节点发生变化才处理
+                        log.info("节点{}变化，变化类型：{}，非末级节点，忽略", path, type);
                         return;
                     }
 
@@ -113,42 +117,6 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
         }
     }
 
-//    private void startListener() {
-//        // 只能监听一级
-//        PathChildrenCache pathChildrenCache = new PathChildrenCache(curatorFramework, NodePathConstants.PUSH_CONFIG_PATH, true);
-//        pathChildrenCache.getListenable()
-//                .addListener((client, event) -> {
-//                    PathChildrenCacheEvent.Type eventType = event.getType();
-//                    if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(eventType)
-//                            || PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(eventType)
-//                            || PathChildrenCacheEvent.Type.CHILD_REMOVED.equals(eventType)) {
-//                        byte[] data = event.getData().getData();
-//                        String jsonData = new String(data, StandardCharsets.UTF_8);
-//
-//                        PushConfigNodeDataVo nodeDataVo = JsonUtils.toObject(jsonData, PushConfigNodeDataVo.class);
-//                        PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
-//                        BeanUtils.copyProperties(nodeDataVo, msgVo);
-//                        if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(eventType)) {
-//                            msgVo.setMsgType(PushConfigMsgType.CONFIG_CREATE.name());
-//                            log.info("节点{}创建，值：{}", event.getData().getPath(), jsonData);
-//                        } else if (PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(eventType)) {
-//                            msgVo.setMsgType(PushConfigMsgType.CONFIG_UPDATE.name());
-//                            log.info("节点{}变化，值：{}", event.getData().getPath(), jsonData);
-//                        } else {
-//                            msgVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
-//                            log.info("节点{}删除，值：{}", event.getData().getPath(), jsonData);
-//                        }
-//
-//                        NettyChannelManage.sendMsgToApp(nodeDataVo.getAppCode(), msgVo);
-//                    }
-//                });
-//        try {
-//            pathChildrenCache.start();
-//        } catch (Exception e) {
-//            throw new IllegalStateException("启动节点监听失败！", e);
-//        }
-//    }
-
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         this.startListener();
@@ -162,4 +130,5 @@ public class PushConfigListener implements ApplicationListener<ApplicationReadyE
             log.info("zk path: {}监听关闭", NodePathConstants.PUSH_CONFIG_PATH);
         }
     }
+
 }

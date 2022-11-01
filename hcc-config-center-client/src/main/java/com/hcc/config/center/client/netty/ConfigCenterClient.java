@@ -37,6 +37,14 @@ public class ConfigCenterClient {
     private int port;
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
+    private NioEventLoopGroup eventLoopGroup;
+
+    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessFailedCallBack callBack) {
+        this.host = host;
+        this.port = port;
+        this.configContext = configContext;
+        this.callBack = callBack;
+    }
 
     /**
      * 启动客户端
@@ -55,6 +63,16 @@ public class ConfigCenterClient {
     }
 
     /**
+     * 关闭客户端
+     */
+    public void stop() {
+        if (eventLoopGroup != null) {
+            eventLoopGroup.shutdownGracefully();
+        }
+        log.info("客户端关闭！");
+    }
+
+    /**
      * 连接服务器
      * @param host
      * @param port
@@ -62,7 +80,7 @@ public class ConfigCenterClient {
      */
     private void doConnect(String host, int port, boolean isReconnect) {
         Bootstrap bootstrap = new Bootstrap();
-        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+        eventLoopGroup = new NioEventLoopGroup();
         ConfigCenterClient that = this;
         try {
             bootstrap.group(eventLoopGroup)

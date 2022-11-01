@@ -12,17 +12,30 @@ import java.math.BigInteger;
 public class ConvertUtils {
 
     /**
+     * 转换到对象
+     * @param value
+     * @param targetClass
+     * @param <T>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T convertValueToTargetObject(String value, Class<T> targetClass) {
+        Object targetValue = convertValueToTargetType(value, targetClass);
+        if (targetValue == null) {
+            return null;
+        }
+
+        return (T) targetValue;
+    }
+
+    /**
      * 转换为目标类型
      * @param value
      * @param targetClass
      * @return
      */
     public static Object convertValueToTargetType(String value, Class<?> targetClass) {
-        if (value == null) {
-            return null;
-        }
-
-        if (String.class.equals(targetClass)) {
+        if (value == null || String.class.equals(targetClass)) {
             return value;
         }
 

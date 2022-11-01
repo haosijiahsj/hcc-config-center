@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -86,13 +85,16 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param field
      */
     private void injectConfigValue(String configKey, Object bean, Field field) {
-        Value value = AnnotationUtils.findAnnotation(field.getType(), Value.class);
+        Value value = field.getAnnotation(Value.class);
         if (value != null) {
             // 使用spring的value注解后，不进行注入，由spring进行注入
             return;
         }
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
         if (appConfigInfo == null) {
+            if (configContext.isCheckConfigExist()) {
+                throw new IllegalArgumentException(String.format("key: [%s]，未在配置中心配置！", configKey));
+            }
             log.warn("key: [{}]，未在配置中心配置！", configKey);
             return;
         }
@@ -119,6 +121,9 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     private void invokeMethod(String configKey, Object bean, Method method) {
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
         if (appConfigInfo == null) {
+            if (configContext.isCheckConfigExist()) {
+                throw new IllegalArgumentException(String.format("key: [%s]，未在配置中心配置！", configKey));
+            }
             log.warn("key: [{}]，未在配置中心配置！", configKey);
             return;
         }
@@ -151,13 +156,13 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicConfigRefInfo.setBean(bean);
 
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
-        if (appConfigInfo != null) {
-            if (!appConfigInfo.getDynamic()) {
-                log.warn("类：[{}]，字段：[{}]，key: [{}]，不是动态配置！", bean.getClass().getName(), field.getName(), configKey);
-            }
+        if (appConfigInfo != null && !appConfigInfo.getDynamic()) {
+            String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
+            String name = field != null ? field.getName() : method != null ? method.getName() : "";
+            log.warn("类：[{}]，{}：[{}]，使用的配置key: [{}]，不是动态配置！", bean.getClass().getName(), tmpTag, name, configKey);
         }
 
-        configContext.addDynamicConfigInfo(dynamicConfigRefInfo);
+        configContext.addDynamicConfigRefInfo(dynamicConfigRefInfo);
     }
 
 }
