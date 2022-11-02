@@ -1,6 +1,5 @@
-package com.hcc.config.center.client.annotation;
+package com.hcc.config.center.client.config;
 
-import com.hcc.config.center.client.config.ConfigCenterConfig;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
