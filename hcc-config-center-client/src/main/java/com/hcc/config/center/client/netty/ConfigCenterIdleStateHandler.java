@@ -1,6 +1,5 @@
 package com.hcc.config.center.client.netty;
 
-import com.hcc.config.center.client.balance.DefaultServerNodeChooser;
 import com.hcc.config.center.client.balance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
@@ -27,8 +26,8 @@ public class ConfigCenterIdleStateHandler extends IdleStateHandler {
     public ConfigCenterIdleStateHandler(ConfigContext configContext, ConfigCenterClient configCenterClient) {
         super(10, 10, 30, TimeUnit.SECONDS);
         this.configContext = configContext;
-        this.serverNodeChooser = new DefaultServerNodeChooser();
         this.configCenterClient = configCenterClient;
+        this.serverNodeChooser = configCenterClient.getServerNodeChooser();
     }
 
     @Override

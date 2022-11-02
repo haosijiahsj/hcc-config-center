@@ -56,7 +56,8 @@ public class ConfigCenterClientInitializer {
                 throw new IllegalStateException("未获取到配置中心服务节点！");
             }
 
-            configCenterClient = new ConfigCenterClient(serverNode.getHost(), serverNode.getPort(), configContext, callBack);
+            configCenterClient = new ConfigCenterClient(serverNode.getHost(), serverNode.getPort(),
+                    configContext, callBack, serverNodeChooser);
             new Thread(configCenterClient::startUp).start();
         } else if (AppMode.LONG_POLLING.name().equals(configContext.getAppMode())) {
             ConfigCenterClientLongPolling schedule = new ConfigCenterClientLongPolling(configContext, callBack);

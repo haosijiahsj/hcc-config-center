@@ -1,6 +1,7 @@
 package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.ProcessFailedCallBack;
+import com.hcc.config.center.client.balance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
@@ -31,20 +32,22 @@ import java.util.stream.Collectors;
 @Data
 public class ConfigCenterClient {
 
-    private ConfigContext configContext;
-    private ProcessFailedCallBack callBack;
     private String host;
     private int port;
+    private ConfigContext configContext;
+    private ProcessFailedCallBack callBack;
+    private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
     private NioEventLoopGroup eventLoopGroup;
     private boolean stopFlag = false;
 
-    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessFailedCallBack callBack) {
+    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessFailedCallBack callBack, ServerNodeChooser serverNodeChooser) {
         this.host = host;
         this.port = port;
         this.configContext = configContext;
         this.callBack = callBack;
+        this.serverNodeChooser = serverNodeChooser;
     }
 
     /**
