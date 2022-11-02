@@ -38,6 +38,7 @@ public class ConfigCenterClient {
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
     private NioEventLoopGroup eventLoopGroup;
+    private boolean stopFlag = false;
 
     public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessFailedCallBack callBack) {
         this.host = host;
@@ -66,10 +67,11 @@ public class ConfigCenterClient {
      * 关闭客户端
      */
     public void stop() {
+        this.stopFlag = true;
         if (eventLoopGroup != null) {
             eventLoopGroup.shutdownGracefully();
         }
-        log.info("客户端关闭！");
+        log.info("动态推送客户端关闭！");
     }
 
     /**

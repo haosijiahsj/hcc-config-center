@@ -43,7 +43,11 @@ public class ConfigCenterIdleStateHandler extends IdleStateHandler {
     }
 
     @Override
-    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (configCenterClient.isStopFlag()) {
+            // 遇停止标识则标识服务在关闭，不进行重连
+            return;
+        }
         log.error("服务端离线：{}，尝试重连！", ctx.channel().remoteAddress());
 
         Runnable runnable = () -> {
