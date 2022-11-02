@@ -1,45 +1,19 @@
-package com.hcc.config.center.client.utils;
+package com.hcc.config.center.client.convert;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * ConvertUtils
+ * String -> Number
  *
  * @author shengjun.hu
- * @date 2022/10/13
+ * @date 2022/11/2
  */
-public class ConvertUtils {
+public class StringToNumberValueConverter implements ValueConverter<Number> {
 
-    /**
-     * 转换到对象
-     * @param value
-     * @param targetClass
-     * @param <T>
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T convertValueToTargetObject(String value, Class<T> targetClass) {
-        Object targetValue = convertValueToTargetType(value, targetClass);
-        if (targetValue == null) {
-            return null;
-        }
-
-        return (T) targetValue;
-    }
-
-    /**
-     * 转换为目标类型
-     * @param value
-     * @param targetClass
-     * @return
-     */
-    public static Object convertValueToTargetType(String value, Class<?> targetClass) {
-        if (value == null || String.class.equals(targetClass)) {
-            return value;
-        }
-
-        Object targetValue;
+    @Override
+    public Number convert(String value, Class<? extends Number> targetClass) {
+        Number targetValue;
         if (Byte.class.equals(targetClass) || byte.class.equals(targetClass)) {
             targetValue = Byte.valueOf(value);
         } else if (Short.class.equals(targetClass) || short.class.equals(targetClass)) {
@@ -52,13 +26,6 @@ public class ConvertUtils {
             targetValue = Float.valueOf(value);
         } else if (Double.class.equals(targetClass) || double.class.equals(targetClass)) {
             targetValue = Double.valueOf(value);
-        } else if (Character.class.equals(targetClass) || char.class.equals(targetClass)) {
-            if (value.length() > 1) {
-                throw new IllegalArgumentException(String.format("值：[%s]无法转换为char", value));
-            }
-            targetValue = value.charAt(0);
-        } else if (Boolean.class.equals(targetClass) || boolean.class.equals(targetClass)) {
-            targetValue = Boolean.valueOf(value);
         } else if (BigInteger.class.equals(targetClass)) {
             targetValue = new BigInteger(value);
         } else if (BigDecimal.class.equals(targetClass)) {

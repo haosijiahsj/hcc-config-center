@@ -4,9 +4,11 @@ import com.hcc.config.center.client.annotation.DynamicValue;
 import com.hcc.config.center.client.annotation.ListenConfig;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigContext;
+import com.hcc.config.center.client.convert.Convertions;
+import com.hcc.config.center.client.convert.NoOpValueConverter;
+import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
-import com.hcc.config.center.client.utils.ConvertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,9 +50,10 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             }
 
             String configKey = staticValue != null ? staticValue.value() : dynamicValue.value();
-            this.injectConfigValue(configKey, bean, field);
+            Class<? extends ValueConverter> converter = staticValue != null ? staticValue.converter() : dynamicValue.converter();
+            this.injectConfigValue(configKey, converter, bean, field);
             if (dynamicValue != null) {
-                this.collectDynamicConfigInfo(configKey, beanName, field, null, bean);
+                this.collectDynamicConfigInfo(configKey, converter, beanName, field, null, bean);
             }
         }
 
@@ -72,7 +75,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                         bean.getClass().getName(), method.getName()));
             }
             this.invokeMethod(listenConfig.value(), bean, method);
-            this.collectDynamicConfigInfo(listenConfig.value(), beanName, null, method, bean);
+            this.collectDynamicConfigInfo(listenConfig.value(), null, beanName, null, method, bean);
         }
 
         return bean;
@@ -81,10 +84,11 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     /**
      * 注入值
      * @param configKey
+     * @param converter
      * @param bean
      * @param field
      */
-    private void injectConfigValue(String configKey, Object bean, Field field) {
+    private void injectConfigValue(String configKey, Class<? extends ValueConverter> converter, Object bean, Field field) {
         Value value = field.getAnnotation(Value.class);
         if (value != null) {
             // 使用spring的value注解后，不进行注入，由spring进行注入
@@ -103,11 +107,18 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
-            field.set(bean, ConvertUtils.convertValueToTargetType(configValue, field.getType()));
+            Object targetValue;
+            if (NoOpValueConverter.class.equals(converter)) {
+                targetValue = Convertions.convertValueToTargetType(configValue, field.getType());
+            } else {
+                ValueConverter valueConverter = converter.newInstance();
+                targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), valueConverter);
+            }
+            field.set(bean, targetValue);
             field.setAccessible(field.isAccessible());
 
             log.info("类：[{}]，字段：[{}]，key: [{}]，注入值：[{}]完成", bean.getClass().getName(), field.getName(), configKey, configValue);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
     }
@@ -147,9 +158,10 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param beanName
      * @param field
      */
-    private void collectDynamicConfigInfo(String configKey, String beanName, Field field, Method method, Object bean) {
+    private void collectDynamicConfigInfo(String configKey, Class<? extends ValueConverter> converter, String beanName, Field field, Method method, Object bean) {
         DynamicConfigRefInfo dynamicConfigRefInfo = new DynamicConfigRefInfo();
         dynamicConfigRefInfo.setKey(configKey);
+        dynamicConfigRefInfo.setConverter(converter);
         dynamicConfigRefInfo.setField(field);
         dynamicConfigRefInfo.setMethod(method);
         dynamicConfigRefInfo.setBeanName(beanName);

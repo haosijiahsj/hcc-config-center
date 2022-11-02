@@ -1,5 +1,6 @@
 package com.hcc.config.center.client.entity;
 
+import com.hcc.config.center.client.convert.ValueConverter;
 import lombok.Data;
 
 import java.lang.reflect.Field;
@@ -18,6 +19,7 @@ public class DynamicConfigRefInfo {
     private Object bean;
     private Field field;
     private Method method;
+    private Class<? extends ValueConverter> converter;
 
     private String key;
 

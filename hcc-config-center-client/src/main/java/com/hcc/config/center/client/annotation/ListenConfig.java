@@ -6,7 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 监听配置值变更，作用于方法
+ * 监听配置值变更，作用于方法，方法不能用static final修饰，必须返回void，仅有一个String参数<br/>
+ * {@literal @}ListenConfig("your config key")<br/>
+ * private void listenConfig(String value) {}
  *
  * @author hushengjun
  * @date 2022/10/21
