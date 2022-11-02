@@ -1,4 +1,4 @@
-package com.hcc.config.center.client.connect;
+package com.hcc.config.center.client.balance;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;

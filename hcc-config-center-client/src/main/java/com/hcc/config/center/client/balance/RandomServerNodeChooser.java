@@ -1,18 +1,19 @@
-package com.hcc.config.center.client.connect;
+package com.hcc.config.center.client.balance;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Random;
 
 /**
- * DefaultServerNodeChooser
+ * 随机的服务选择器
  *
- * @author hushengjun
- * @date 2022/10/22
+ * @author shengjun.hu
+ * @date 2022/11/2
  */
-public class DefaultServerNodeChooser implements ServerNodeChooser {
+public class RandomServerNodeChooser implements ServerNodeChooser {
 
     @Override
     public ServerNodeInfo chooseServerNode(ConfigContext configContext) {
@@ -24,9 +25,9 @@ public class DefaultServerNodeChooser implements ServerNodeChooser {
             return serverNodeInfos.get(0);
         }
 
-        int size = serverNodeInfos.size();
-        int index = configContext.getAppCode().hashCode() % size;
-        return serverNodeInfos.get(index);
+        int i = new Random().nextInt(serverNodeInfos.size());
+
+        return serverNodeInfos.get(i);
     }
 
 }

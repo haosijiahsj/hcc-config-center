@@ -75,6 +75,16 @@ public class ConfigCenterClient {
     }
 
     /**
+     * 关闭客户端，重平衡
+     */
+    public void stopForBalance() {
+        if (eventLoopGroup != null) {
+            eventLoopGroup.shutdownGracefully();
+            log.info("动态推送客户端关闭！进行重平衡");
+        }
+    }
+
+    /**
      * 连接服务器
      * @param host
      * @param port

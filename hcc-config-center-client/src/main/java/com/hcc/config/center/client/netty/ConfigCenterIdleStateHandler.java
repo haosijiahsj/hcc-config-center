@@ -1,11 +1,10 @@
 package com.hcc.config.center.client.netty;
 
-import com.hcc.config.center.client.connect.DefaultServerNodeChooser;
-import com.hcc.config.center.client.connect.ServerNodeChooser;
+import com.hcc.config.center.client.balance.DefaultServerNodeChooser;
+import com.hcc.config.center.client.balance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 在次实现了重连
+ * 在此实现了重连
  *
  * @author hushengjun
  * @date 2022/10/22
@@ -45,7 +44,7 @@ public class ConfigCenterIdleStateHandler extends IdleStateHandler {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (configCenterClient.isStopFlag()) {
-            // 遇停止标识则标识服务在关闭，不进行重连
+            // 遇停止标识则表示服务在关闭，不进行重连
             return;
         }
         log.error("服务端离线：{}，尝试重连！", ctx.channel().remoteAddress());
@@ -59,7 +58,7 @@ public class ConfigCenterIdleStateHandler extends IdleStateHandler {
                     break;
                 } catch (Exception e) {
                     long timeout = curTimeout + count * 2L;
-                    log.error("重连异常，等待{}s后重试！异常信息：{}", timeout, e.getMessage());
+                    log.error(String.format("重连异常，等待%ss后重试！", timeout), e);
                     count++;
                     curTimeout = timeout;
                     sleepForSecond(timeout);
