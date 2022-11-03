@@ -10,7 +10,7 @@ import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import com.hcc.config.center.domain.vo.ServerNodeVo;
 import com.hcc.config.center.service.ApplicationConfigService;
 import com.hcc.config.center.service.ApplicationService;
-import com.hcc.config.center.service.longpolling.LongPollingContext;
+import com.hcc.config.center.service.context.LongPollingContext;
 import com.hcc.config.center.service.utils.JsonUtils;
 import com.hcc.config.center.service.zk.ZkHandler;
 import lombok.extern.slf4j.Slf4j;

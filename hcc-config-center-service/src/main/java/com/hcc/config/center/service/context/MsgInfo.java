@@ -1,4 +1,4 @@
-package com.hcc.config.center.service.netty;
+package com.hcc.config.center.service.context;
 
 import lombok.Data;
 

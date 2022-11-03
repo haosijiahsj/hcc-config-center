@@ -56,11 +56,7 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         nodeDataVo.setKey(applicationConfigPo.getKey());
         nodeDataVo.setValue(applicationConfigPo.getValue());
         nodeDataVo.setVersion(applicationConfigPo.getVersion());
-        if (forceUpdate != null) {
-            nodeDataVo.setForceUpdate(forceUpdate);
-        } else {
-            nodeDataVo.setForceUpdate(false);
-        }
+        nodeDataVo.setForceUpdate(forceUpdate != null ? forceUpdate : false);
 
         zkHandler.addPushConfigNode(nodeDataVo);
 

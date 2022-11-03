@@ -1,4 +1,4 @@
-package com.hcc.config.center.service.longpolling;
+package com.hcc.config.center.service.context;
 
 import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
 import lombok.Data;
