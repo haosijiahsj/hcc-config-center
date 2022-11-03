@@ -10,7 +10,7 @@ public class NoOpValueConverter implements ValueConverter<String> {
 
     @Override
     public String convert(String value, Class targetClass) {
-        throw new UnsupportedOperationException("ooh, wrong operating !");
+        throw new UnsupportedOperationException(String.format("值：[%s]转换到目标类型：[%s]，未找到默认转换器，请指定转换器！", value, targetClass));
     }
 
 }

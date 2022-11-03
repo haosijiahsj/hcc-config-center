@@ -2,6 +2,7 @@ package com.hcc.config.center.client.convert;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class Convertions {
     private static final ValueConverter<?> stringToBooleanValueConverter = new StringToBooleanValueConverter();
     private static final ValueConverter<?> stringToCharacterValueConverter = new StringToCharacterValueConverter();
     private static final ValueConverter<?> stringToNumberValueConverter = new StringToNumberValueConverter();
+    private static final ValueConverter<?> stringToTemporalValueConverter = new StringToTemporalValueConverter();
+    private static final ValueConverter<?> noOpValueConverter = new NoOpValueConverter();
 
     static {
         charTypes = Arrays.asList(
@@ -52,9 +55,11 @@ public class Convertions {
             return stringToBooleanValueConverter;
         } else if (numberTypes.contains(targetClass)) {
             return stringToNumberValueConverter;
+        } else if (Temporal.class.isAssignableFrom(targetClass)) {
+            return stringToTemporalValueConverter;
         }
 
-        return null;
+        return noOpValueConverter;
     }
 
     /**
@@ -96,10 +101,6 @@ public class Convertions {
         }
 
         ValueConverter<?> valueConverter = selectConverter(targetClass);
-        if (valueConverter == null) {
-            throw new IllegalStateException(String.format("目标类型：[%s]没有默认转换器", targetClass));
-        }
-
         return convertValueToTargetType(value, targetClass, valueConverter);
     }
 
