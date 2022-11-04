@@ -2,13 +2,12 @@ package com.hcc.config.center.client.processor;
 
 import com.hcc.config.center.client.ProcessFailedCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.convert.NoOpValueConverter;
+import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ProcessDynamicConfigFailed;
-import com.hcc.config.center.client.convert.Convertions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
@@ -128,13 +127,7 @@ public class ConfigCenterMsgProcessor {
                     field.setAccessible(true);
                 }
                 Class<? extends ValueConverter> converter = dynamicConfigRefInfo.getConverter();
-                Object targetValue;
-                if (NoOpValueConverter.class.equals(converter)) {
-                    targetValue = Convertions.convertValueToTargetType(newValue, field.getType());
-                } else {
-                    ValueConverter valueConverter = converter.newInstance();
-                    targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), valueConverter);
-                }
+                Object targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), converter.newInstance());
                 field.set(bean, targetValue);
                 field.setAccessible(field.isAccessible());
             }

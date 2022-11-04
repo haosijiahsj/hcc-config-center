@@ -5,7 +5,6 @@ import com.hcc.config.center.client.annotation.ListenConfig;
 import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
-import com.hcc.config.center.client.convert.NoOpValueConverter;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
@@ -107,13 +106,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
-            Object targetValue;
-            if (NoOpValueConverter.class.equals(converter)) {
-                targetValue = Convertions.convertValueToTargetType(configValue, field.getType());
-            } else {
-                ValueConverter valueConverter = converter.newInstance();
-                targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), valueConverter);
-            }
+            Object targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), converter.newInstance());
             field.set(bean, targetValue);
             field.setAccessible(field.isAccessible());
 

@@ -9,7 +9,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 动态刷新注解，作用于字段
+ * 动态刷新注解，作用于字段<br/>
+ * 支持以下类型自动转换<br/>
+ * String, 8种基础数据类型（包装+原始）, BigInteger, BigDecimal, Enum, java.util.Date, LocalDateTime, LocalDate, LocalTime
  *
  * @author hushengjun
  * @date 2022/10/6

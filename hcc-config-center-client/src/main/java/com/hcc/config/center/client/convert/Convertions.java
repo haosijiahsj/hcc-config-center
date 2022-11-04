@@ -75,17 +75,7 @@ public class Convertions {
      */
     @SuppressWarnings("unchecked")
     public static <T> T convertValueToTargetObject(String value, Class<T> targetClass) {
-        Object targetValue = convertValueToTargetType(value, targetClass);
-        if (targetValue == null) {
-            return null;
-        }
-
-        return (T) targetValue;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T convertValueToTargetObject(String value, Class<T> targetClass, ValueConverter valueConverter) {
-        Object targetValue = convertValueToTargetType(value, targetClass, valueConverter);
+        Object targetValue = convertValueToTargetType(value, targetClass, null);
         if (targetValue == null) {
             return null;
         }
@@ -97,21 +87,16 @@ public class Convertions {
      * 转换为目标类型
      * @param value
      * @param targetClass
+     * @param valueConverter
      * @return
      */
-    public static Object convertValueToTargetType(String value, Class<?> targetClass) {
-        if (value == null || String.class.equals(targetClass)) {
-            return value;
-        }
-
-        ValueConverter<?> valueConverter = selectConverter(targetClass);
-        return convertValueToTargetType(value, targetClass, valueConverter);
-    }
-
     @SuppressWarnings("unchecked")
     public static Object convertValueToTargetType(String value, Class<?> targetClass, ValueConverter valueConverter) {
         if (value == null || String.class.equals(targetClass)) {
             return value;
+        }
+        if (valueConverter == null || valueConverter instanceof NoOpValueConverter) {
+            valueConverter = selectConverter(targetClass);
         }
 
         return valueConverter.convert(value, targetClass);
