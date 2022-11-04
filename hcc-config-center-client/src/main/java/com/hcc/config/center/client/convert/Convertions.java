@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,6 +26,7 @@ public class Convertions {
     private static final ValueConverter<?> stringToCharacterValueConverter = new StringToCharacterValueConverter();
     private static final ValueConverter<?> stringToNumberValueConverter = new StringToNumberValueConverter();
     private static final ValueConverter<?> stringToTemporalValueConverter = new StringToTemporalValueConverter();
+    private static final ValueConverter<?> stringToDateValueConverter = new StringToDateValueConverter();
     private static final ValueConverter<?> noOpValueConverter = new NoOpValueConverter();
 
     static {
@@ -57,6 +59,8 @@ public class Convertions {
             return stringToNumberValueConverter;
         } else if (Temporal.class.isAssignableFrom(targetClass)) {
             return stringToTemporalValueConverter;
+        } else if (Date.class.equals(targetClass)) {
+            return stringToDateValueConverter;
         }
 
         return noOpValueConverter;
