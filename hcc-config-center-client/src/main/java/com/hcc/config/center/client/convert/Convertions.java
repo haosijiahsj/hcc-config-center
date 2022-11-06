@@ -74,8 +74,8 @@ public class Convertions {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static <T> T convertValueToTargetObject(String value, Class<T> targetClass) {
-        Object targetValue = convertValueToTargetType(value, targetClass, null);
+    public static <T> T convertValueToTargetObject(String value, Class<T> targetClass, ValueConverter<T> valueConverter) {
+        Object targetValue = convertValueToTargetType(value, targetClass, valueConverter);
         if (targetValue == null) {
             return null;
         }

@@ -2,6 +2,7 @@ package com.hcc.config.center.client;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
+import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 
 /**
@@ -44,7 +45,18 @@ public class ConfigService {
      * @return
      */
     public <T> T getConfigValue(String key, Class<T> targetClass) {
-        return Convertions.convertValueToTargetObject(this.getConfigValue(key), targetClass);
+        return Convertions.convertValueToTargetObject(this.getConfigValue(key), targetClass, null);
+    }
+
+    /**
+     * 获取配置值并使用给定转换器转换为目标类型
+     * @param key
+     * @param targetClass
+     * @param <T>
+     * @return
+     */
+    public <T> T getConfigValue(String key, Class<T> targetClass, ValueConverter<T> valueConverter) {
+        return Convertions.convertValueToTargetObject(this.getConfigValue(key), targetClass, valueConverter);
     }
 
     /**

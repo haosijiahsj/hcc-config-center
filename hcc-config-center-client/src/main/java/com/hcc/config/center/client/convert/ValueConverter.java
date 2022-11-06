@@ -6,6 +6,7 @@ package com.hcc.config.center.client.convert;
  * @author shengjun.hu
  * @date 2022/11/2
  */
+@FunctionalInterface
 public interface ValueConverter<T> {
 
     /**
