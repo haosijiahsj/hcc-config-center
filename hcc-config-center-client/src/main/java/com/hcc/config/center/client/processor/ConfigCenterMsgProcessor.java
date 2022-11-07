@@ -1,13 +1,13 @@
 package com.hcc.config.center.client.processor;
 
-import com.hcc.config.center.client.ProcessFailedCallBack;
+import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
-import com.hcc.config.center.client.entity.ProcessDynamicConfigFailed;
+import com.hcc.config.center.client.entity.ProcessDynamicConfigInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
@@ -35,10 +35,10 @@ public class ConfigCenterMsgProcessor {
     private final BlockingQueue<MsgInfo> blockingQueue = new ArrayBlockingQueue<>(20);
 
     private final ConfigContext configContext;
-    private final ProcessFailedCallBack callBack;
+    private final ProcessDynamicConfigCallBack callBack;
     private final Map<String, List<DynamicConfigRefInfo>> keyDynamicConfigRefInfoMap;
 
-    public ConfigCenterMsgProcessor(ConfigContext configContext, ProcessFailedCallBack callBack) {
+    public ConfigCenterMsgProcessor(ConfigContext configContext, ProcessDynamicConfigCallBack callBack) {
         this.configContext = configContext;
         this.callBack = callBack;
         keyDynamicConfigRefInfoMap = configContext.getDynamicConfigRefInfos()
@@ -147,6 +147,15 @@ public class ConfigCenterMsgProcessor {
         String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
         String name = field != null ? field.getName() : method != null ? method.getName() : "";
 
+        // 拼装此次处理信息
+        ProcessDynamicConfigInfo info = ProcessDynamicConfigInfo.builder()
+                .key(key)
+                .oldVersion(appConfigInfo == null ? null : appConfigInfo.getVersion())
+                .newVersion(msgInfo.getVersion())
+                .oldValue(appConfigInfo == null ? null : appConfigInfo.getValue())
+                .newValue(newValue)
+                .build();
+
         try {
             if (field != null) {
                 if (!field.isAccessible()) {
@@ -166,17 +175,12 @@ public class ConfigCenterMsgProcessor {
             }
 
             log.info("类：[{}]，{}：[{}]，key: [{}]，value: [{}]处理完成", bean.getClass().getName(), tmpTag, name, key, newValue);
+
+            callBack.onSuccess(info);
         } catch (Exception e) {
             log.error(String.format("类：[%s]，%s：[%s]，key: [%s]，value: [%s]反射处理异常！", bean.getClass().getName(), tmpTag, name, key, newValue), e);
 
-            ProcessDynamicConfigFailed failedInfo = new ProcessDynamicConfigFailed();
-            failedInfo.setClazz(bean.getClass());
-            failedInfo.setField(field);
-            failedInfo.setMethod(method);
-            failedInfo.setKey(key);
-            failedInfo.setOldValue(appConfigInfo == null ? null : appConfigInfo.getValue());
-            failedInfo.setNewValue(newValue);
-            callBack.callBack(failedInfo, e);
+            callBack.onException(info, e);
         }
     }
 

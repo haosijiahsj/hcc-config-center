@@ -1,7 +1,7 @@
 package com.hcc.config.center.client.config;
 
 import com.hcc.config.center.client.ConfigService;
-import com.hcc.config.center.client.ProcessFailedCallBack;
+import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
 import com.hcc.config.center.client.balance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
@@ -92,9 +92,9 @@ public class ConfigCenterConfig {
      * @return
      */
     @Bean(destroyMethod = "stopClient")
-    public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessFailedCallBack> callBackObjectProvider,
+    public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessDynamicConfigCallBack> callBackObjectProvider,
                                                                        ObjectProvider<ServerNodeChooser> serverNodeChooserObjectProvider) {
-        ProcessFailedCallBack callBack = callBackObjectProvider.getIfAvailable();
+        ProcessDynamicConfigCallBack callBack = callBackObjectProvider.getIfAvailable();
         ServerNodeChooser serverNodeChooser = serverNodeChooserObjectProvider.getIfAvailable();
         ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack, serverNodeChooser);
         initializer.startClient();

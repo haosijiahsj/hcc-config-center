@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.ProcessFailedCallBack;
+import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
 import com.hcc.config.center.client.balance.DefaultServerNodeChooser;
 import com.hcc.config.center.client.balance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
@@ -20,20 +20,20 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfigCenterClientInitializer {
 
     private final ConfigContext configContext;
-    private ProcessFailedCallBack callBack;
+    private ProcessDynamicConfigCallBack callBack;
     private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterClient configCenterClient;
 
-    public ConfigCenterClientInitializer(ConfigContext configContext, ProcessFailedCallBack callBack) {
+    public ConfigCenterClientInitializer(ConfigContext configContext, ProcessDynamicConfigCallBack callBack) {
         this(configContext, callBack, null);
     }
 
-    public ConfigCenterClientInitializer(ConfigContext configContext, ProcessFailedCallBack callBack, ServerNodeChooser serverNodeChooser) {
+    public ConfigCenterClientInitializer(ConfigContext configContext, ProcessDynamicConfigCallBack callBack, ServerNodeChooser serverNodeChooser) {
         this.configContext = configContext;
         this.callBack = callBack;
         if (this.callBack == null) {
-            this.callBack = new ProcessFailedCallBack() {};
+            this.callBack = new ProcessDynamicConfigCallBack() {};
         }
         this.serverNodeChooser = serverNodeChooser;
         if (AppMode.LONG_CONNECT.name().equals(configContext.getAppMode()) && this.serverNodeChooser == null) {

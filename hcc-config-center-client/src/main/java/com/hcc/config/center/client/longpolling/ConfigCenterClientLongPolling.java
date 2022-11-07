@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.longpolling;
 
-import com.hcc.config.center.client.ProcessFailedCallBack;
+import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
@@ -25,7 +25,7 @@ public class ConfigCenterClientLongPolling {
     private final ConfigContext configContext;
     private final ConfigCenterMsgProcessor configCenterMsgProcessor;
 
-    public ConfigCenterClientLongPolling(ConfigContext configContext, ProcessFailedCallBack callBack) {
+    public ConfigCenterClientLongPolling(ConfigContext configContext, ProcessDynamicConfigCallBack callBack) {
         this.configContext = configContext;
         this.configCenterMsgProcessor = new ConfigCenterMsgProcessor(configContext, callBack);
     }
