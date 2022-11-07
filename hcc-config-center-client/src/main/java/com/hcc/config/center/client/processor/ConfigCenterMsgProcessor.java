@@ -9,7 +9,6 @@ import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ProcessDynamicConfigInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -107,27 +106,40 @@ public class ConfigCenterMsgProcessor {
 
         String key = msgInfo.getKey();
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
-        AppConfigInfo oldConfigInfo = null;
-        if (appConfigInfo != null) {
-            oldConfigInfo = new AppConfigInfo();
-            BeanUtils.copyProperties(appConfigInfo, oldConfigInfo);
-        }
         if (!this.needProcess(msgInfo)) {
             return;
         }
 
+        boolean processSuccess = true;
         // 处理动态配置
         List<DynamicConfigRefInfo> dynamicConfigRefInfos = keyDynamicConfigRefInfoMap.get(key);
         if (CollectionUtils.isEmpty(dynamicConfigRefInfos)) {
+            // 没有动态配置
             if (log.isDebugEnabled()) {
-                // 没有动态字段
                 log.debug("key: [{}]没有字段或方法引用，忽略处理", key);
             }
+        } else {
+            for (DynamicConfigRefInfo refInfo : dynamicConfigRefInfos) {
+                processSuccess = this.processDynamicConfig(msgInfo, appConfigInfo, refInfo);
+            }
+        }
+
+        // 全部成功才会刷新本地值
+        if (!processSuccess) {
             return;
         }
 
-        AppConfigInfo finalOldConfigInfo = oldConfigInfo;
-        dynamicConfigRefInfos.forEach(d -> this.processDynamicConfig(msgInfo, finalOldConfigInfo, d));
+        // 本地值刷新
+        if (appConfigInfo == null || appConfigInfo.getVersion() < msgInfo.getVersion()) {
+            if (appConfigInfo == null) {
+                appConfigInfo = new AppConfigInfo();
+                appConfigInfo.setKey(key);
+                appConfigInfo.setDynamic(true);
+            }
+            appConfigInfo.setValue(msgInfo.getValue());
+            appConfigInfo.setVersion(msgInfo.getVersion());
+            configContext.refreshConfigMap(key, appConfigInfo);
+        }
     }
 
     /**
@@ -136,7 +148,7 @@ public class ConfigCenterMsgProcessor {
      * @param appConfigInfo
      * @param dynamicConfigRefInfo
      */
-    private void processDynamicConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, DynamicConfigRefInfo dynamicConfigRefInfo) {
+    private boolean processDynamicConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, DynamicConfigRefInfo dynamicConfigRefInfo) {
         String key = msgInfo.getKey();
         String newValue = msgInfo.getValue();
 
@@ -150,9 +162,9 @@ public class ConfigCenterMsgProcessor {
         // 拼装此次处理信息
         ProcessDynamicConfigInfo info = ProcessDynamicConfigInfo.builder()
                 .key(key)
-                .oldVersion(appConfigInfo == null ? null : appConfigInfo.getVersion())
+                .version(appConfigInfo == null ? null : appConfigInfo.getVersion())
                 .newVersion(msgInfo.getVersion())
-                .oldValue(appConfigInfo == null ? null : appConfigInfo.getValue())
+                .value(appConfigInfo == null ? null : appConfigInfo.getValue())
                 .newValue(newValue)
                 .build();
 
@@ -181,7 +193,10 @@ public class ConfigCenterMsgProcessor {
             log.error(String.format("类：[%s]，%s：[%s]，key: [%s]，value: [%s]反射处理异常！", bean.getClass().getName(), tmpTag, name, key, newValue), e);
 
             callBack.onException(info, e);
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -191,7 +206,6 @@ public class ConfigCenterMsgProcessor {
      */
     private boolean needProcess(MsgInfo msgInfo) {
         String key = msgInfo.getKey();
-        String newValue = msgInfo.getValue();
         Integer newVersion = msgInfo.getVersion();
 
         // appCode不一致
@@ -205,18 +219,6 @@ public class ConfigCenterMsgProcessor {
         if (appConfigInfo != null && appConfigInfo.getVersion() >= newVersion && !msgInfo.getForceUpdate()) {
             log.warn("key: [{}]当前版本：[{}] >= 服务器版本：[{}]，忽略更新", key, appConfigInfo.getVersion(), newVersion);
             return false;
-        }
-
-        // 本地值刷新
-        if (appConfigInfo == null || appConfigInfo.getVersion() < newVersion) {
-            if (appConfigInfo == null) {
-                appConfigInfo = new AppConfigInfo();
-                appConfigInfo.setKey(key);
-                appConfigInfo.setDynamic(true);
-            }
-            appConfigInfo.setValue(newValue);
-            appConfigInfo.setVersion(newVersion);
-            configContext.refreshConfigMap(key, appConfigInfo);
         }
 
         return true;

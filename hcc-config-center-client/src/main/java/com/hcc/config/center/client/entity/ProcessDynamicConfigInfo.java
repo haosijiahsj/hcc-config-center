@@ -14,9 +14,9 @@ import lombok.Data;
 public class ProcessDynamicConfigInfo {
 
     private String key;
-    private Integer oldVersion;
+    private Integer version;
+    private String value;
     private Integer newVersion;
-    private String oldValue;
     private String newValue;
 
 }
