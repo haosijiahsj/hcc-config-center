@@ -16,8 +16,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +29,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConfigCenterMsgProcessor {
 
-    private final BlockingQueue<MsgInfo> blockingQueue = new LinkedBlockingQueue<>(20);
+    /**
+     * 存放所有需要处理的动态字段
+     */
+    private final BlockingQueue<MsgInfo> blockingQueue = new ArrayBlockingQueue<>(20);
 
     private final ConfigContext configContext;
     private final ProcessFailedCallBack callBack;
@@ -42,6 +45,29 @@ public class ConfigCenterMsgProcessor {
                 .stream()
                 .collect(Collectors.groupingBy(DynamicConfigRefInfo::getKey));
         this.startWorker();
+    }
+
+    /**
+     * 直接返回appCode，某些地方有用，避免再获取ConfigContext
+     * @return
+     */
+    public String getAppCode() {
+        return configContext.getAppCode();
+    }
+
+    /**
+     * 添加消息到队列，为满阻塞
+     * @param msgInfo
+     */
+    public void addMsgToQueue(MsgInfo msgInfo) {
+        if (msgInfo == null) {
+            return;
+        }
+        try {
+            blockingQueue.put(msgInfo);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("添加队列值异常", e);
+        }
     }
 
     /**
@@ -190,21 +216,6 @@ public class ConfigCenterMsgProcessor {
         }
 
         return true;
-    }
-
-    /**
-     * 添加消息到队列
-     * @param msgInfo
-     */
-    public void addMsgToQueue(MsgInfo msgInfo) {
-        if (msgInfo == null) {
-            return;
-        }
-        blockingQueue.add(msgInfo);
-    }
-
-    public String getAppCode() {
-        return configContext.getAppCode();
     }
 
 }
