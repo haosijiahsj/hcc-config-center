@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HcValue {
+public @interface ConfigValue {
     /**
      * 配置key
      * @return

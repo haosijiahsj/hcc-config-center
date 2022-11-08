@@ -1,7 +1,7 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.annotation.HcValue;
-import com.hcc.config.center.client.annotation.ListenConfig;
+import com.hcc.config.center.client.annotation.ConfigValue;
+import com.hcc.config.center.client.annotation.ConfigListener;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
@@ -35,8 +35,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] declaredFields = bean.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
-            HcValue hcValue = field.getAnnotation(HcValue.class);
-            if (hcValue == null) {
+            ConfigValue configValue = field.getAnnotation(ConfigValue.class);
+            if (configValue == null) {
                 continue;
             }
 
@@ -46,17 +46,17 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                         bean.getClass().getName(), field.getName()));
             }
 
-            String configKey = hcValue.value();
-            Class<? extends ValueConverter> converter = hcValue.converter();
+            String configKey = configValue.value();
+            Class<? extends ValueConverter> converter = configValue.converter();
             this.injectConfigValue(configKey, converter, bean, field);
-            if (hcValue.refresh()) {
+            if (configValue.refresh()) {
                 this.collectDynamicConfigInfo(configKey, converter, beanName, field, null, bean);
             }
         }
 
         for (Method method : bean.getClass().getDeclaredMethods()) {
-            ListenConfig listenConfig = method.getAnnotation(ListenConfig.class);
-            if (listenConfig == null) {
+            ConfigListener configListener = method.getAnnotation(ConfigListener.class);
+            if (configListener == null) {
                 continue;
             }
             if (Modifier.isStatic(method.getModifiers()) || Modifier.isFinal(method.getModifiers())) {
@@ -71,8 +71,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                 throw new IllegalStateException(String.format("类：[%s]，方法：[%s]返回值必须为空！",
                         bean.getClass().getName(), method.getName()));
             }
-            this.invokeMethod(listenConfig.value(), bean, method);
-            this.collectDynamicConfigInfo(listenConfig.value(), null, beanName, null, method, bean);
+            this.invokeMethod(configListener.value(), bean, method);
+            this.collectDynamicConfigInfo(configListener.value(), null, beanName, null, method, bean);
         }
 
         return bean;
