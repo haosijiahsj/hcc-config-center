@@ -69,7 +69,6 @@ public class ConfigCenterController {
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, applicationPo.getId())
-                .eq(dynamic != null, ApplicationConfigPo::getDynamic, dynamic)
                 .list();
         if (CollUtil.isEmpty(applicationConfigPos)) {
             return Collections.emptyList();
@@ -86,8 +85,8 @@ public class ConfigCenterController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/get-dynamic-app-config")
-    public List<AppConfigInfo> getAppConfigForDynamic(@RequestParam String appCode,
+    @GetMapping("/get-changed-app-config")
+    public List<AppConfigInfo> getAppConfigForChanged(@RequestParam String appCode,
                                                       @RequestParam String secretKey,
                                                       @RequestParam String keyParam) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
@@ -95,7 +94,6 @@ public class ConfigCenterController {
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, applicationPo.getId())
-                .eq(ApplicationConfigPo::getDynamic, true)
                 .eq(ApplicationConfigPo::getKey, configParams.stream().map(AppConfigInfo::getKey).collect(Collectors.toSet()))
                 .list();
         if (CollUtil.isEmpty(applicationConfigPos)) {

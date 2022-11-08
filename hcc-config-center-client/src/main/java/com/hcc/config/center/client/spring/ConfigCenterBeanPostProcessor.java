@@ -1,8 +1,7 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.annotation.DynamicValue;
+import com.hcc.config.center.client.annotation.HcValue;
 import com.hcc.config.center.client.annotation.ListenConfig;
-import com.hcc.config.center.client.annotation.StaticValue;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
@@ -36,9 +35,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] declaredFields = bean.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
-            StaticValue staticValue = field.getAnnotation(StaticValue.class);
-            DynamicValue dynamicValue = field.getAnnotation(DynamicValue.class);
-            if (staticValue == null && dynamicValue == null) {
+            HcValue hcValue = field.getAnnotation(HcValue.class);
+            if (hcValue == null) {
                 continue;
             }
 
@@ -48,10 +46,10 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                         bean.getClass().getName(), field.getName()));
             }
 
-            String configKey = staticValue != null ? staticValue.value() : dynamicValue.value();
-            Class<? extends ValueConverter> converter = staticValue != null ? staticValue.converter() : dynamicValue.converter();
+            String configKey = hcValue.value();
+            Class<? extends ValueConverter> converter = hcValue.converter();
             this.injectConfigValue(configKey, converter, bean, field);
-            if (dynamicValue != null) {
+            if (hcValue.refresh()) {
                 this.collectDynamicConfigInfo(configKey, converter, beanName, field, null, bean);
             }
         }
@@ -159,13 +157,6 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         dynamicConfigRefInfo.setMethod(method);
         dynamicConfigRefInfo.setBeanName(beanName);
         dynamicConfigRefInfo.setBean(bean);
-
-        AppConfigInfo appConfigInfo = configContext.getConfigInfo(configKey);
-        if (appConfigInfo != null && !appConfigInfo.getDynamic()) {
-            String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
-            String name = field != null ? field.getName() : method != null ? method.getName() : "";
-            log.warn("类：[{}]，{}：[{}]，使用的配置key: [{}]，不是动态配置！", bean.getClass().getName(), tmpTag, name, configKey);
-        }
 
         configContext.addDynamicConfigRefInfo(dynamicConfigRefInfo);
     }

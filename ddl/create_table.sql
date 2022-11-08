@@ -19,7 +19,6 @@ CREATE TABLE `application_config` (
   `_value` varchar(1024) DEFAULT NULL COMMENT 'value',
   `_comment` varchar(255) DEFAULT NULL COMMENT '注释',
   `version` int(11) DEFAULT NULL COMMENT '版本',
-  `dynamic` tinyint(4) NOT NULL COMMENT '是否动态值',
   `create_time` datetime NOT NULL COMMENT '创建时间',
   `update_time` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),

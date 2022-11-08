@@ -23,7 +23,6 @@ public class ApplicationConfigPo extends BasePo {
     private String value;
     @TableField("_comment")
     private String comment;
-    private Boolean dynamic;
     private Integer version;
 
 }

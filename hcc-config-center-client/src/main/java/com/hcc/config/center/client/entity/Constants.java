@@ -12,7 +12,7 @@ public interface Constants {
      * 配置中心获取配置地址
      */
     String APP_CONFIG_URI = "/config-center/get-app-config";
-    String DYNAMIC_APP_CONFIG_URI = "/config-center/get-dynamic-app-config";
+    String CHANGED_APP_CONFIG_URI = "/config-center/get-changed-app-config";
     String WATCH_URI = "/config-center/watch";
     /**
      * 配置中心获取服务节点地址

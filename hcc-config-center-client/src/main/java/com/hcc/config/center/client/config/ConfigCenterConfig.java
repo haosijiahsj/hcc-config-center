@@ -2,7 +2,7 @@ package com.hcc.config.center.client.config;
 
 import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
-import com.hcc.config.center.client.balance.ServerNodeChooser;
+import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.spring.ConfigCenterBeanPostProcessor;

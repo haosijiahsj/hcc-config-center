@@ -112,29 +112,28 @@ public class ConfigCenterMsgProcessor {
 
         boolean processSuccess = true;
         // 处理动态配置
-        List<DynamicConfigRefInfo> dynamicConfigRefInfos = keyDynamicConfigRefInfoMap.get(key);
-        if (CollectionUtils.isEmpty(dynamicConfigRefInfos)) {
-            // 没有动态配置
-            if (log.isDebugEnabled()) {
-                log.debug("key: [{}]没有字段或方法引用，忽略处理", key);
-            }
-        } else {
-            for (DynamicConfigRefInfo refInfo : dynamicConfigRefInfos) {
-                processSuccess = this.processDynamicConfig(msgInfo, appConfigInfo, refInfo);
-            }
+        for (DynamicConfigRefInfo refInfo : keyDynamicConfigRefInfoMap.get(key)) {
+            processSuccess = this.processDynamicConfig(msgInfo, appConfigInfo, refInfo);
         }
 
         // 全部成功才会刷新本地值
-        if (!processSuccess) {
-            return;
+        if (processSuccess) {
+            this.refreshConfigMap(key, appConfigInfo, msgInfo);
         }
+    }
 
+    /**
+     * 更新本地缓存的值
+     * @param key
+     * @param appConfigInfo
+     * @param msgInfo
+     */
+    private void refreshConfigMap(String key, AppConfigInfo appConfigInfo, MsgInfo msgInfo) {
         // 本地值刷新
         if (appConfigInfo == null || appConfigInfo.getVersion() < msgInfo.getVersion()) {
             if (appConfigInfo == null) {
                 appConfigInfo = new AppConfigInfo();
                 appConfigInfo.setKey(key);
-                appConfigInfo.setDynamic(true);
             }
             appConfigInfo.setValue(msgInfo.getValue());
             appConfigInfo.setVersion(msgInfo.getVersion());
@@ -211,13 +210,20 @@ public class ConfigCenterMsgProcessor {
         // appCode不一致
         String curAppCode = configContext.getAppCode();
         if (!curAppCode.equals(msgInfo.getAppCode())) {
-            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略更新", curAppCode, msgInfo.getAppCode());
+            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略", curAppCode, msgInfo.getAppCode());
             return false;
         }
 
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
         if (appConfigInfo != null && appConfigInfo.getVersion() >= newVersion && !msgInfo.getForceUpdate()) {
-            log.warn("key: [{}]当前版本：[{}] >= 服务器版本：[{}]，忽略更新", key, appConfigInfo.getVersion(), newVersion);
+            log.warn("key: [{}]当前版本：[{}] >= 服务器版本：[{}]，忽略", key, appConfigInfo.getVersion(), newVersion);
+            return false;
+        }
+
+        if (keyDynamicConfigRefInfoMap.get(key) == null) {
+            log.warn("key: [{}]没有字段或方法标记需要刷新，忽略", key);
+            // 没有引用，但需要更新本地缓存
+            this.refreshConfigMap(key, appConfigInfo, msgInfo);
             return false;
         }
 

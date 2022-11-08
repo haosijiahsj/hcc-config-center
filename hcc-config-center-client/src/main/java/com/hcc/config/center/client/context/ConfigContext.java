@@ -119,19 +119,9 @@ public class ConfigContext {
      * 打印初始化日志
      */
     private void printInitLog() {
-        Map<String, String> staticConfigMap = new HashMap<>();
-        Map<String, String> dynamicConfigMap = new HashMap<>();
-        configMap.forEach((k, v) -> {
-            if (v.getDynamic()) {
-                dynamicConfigMap.put(v.getKey(), v.getValue());
-            } else {
-                staticConfigMap.put(v.getKey(), v.getValue());
-            }
-        });
         // 打印所有配置信息
         log.info("应用：{}，模式为：{}", appCode, appMode);
-        log.info("静态配置：\n{}", JsonUtils.toJsonForBeauty(staticConfigMap));
-        log.info("动态配置：\n{}", JsonUtils.toJsonForBeauty(dynamicConfigMap));
+        log.info("配置信息：\n{}", JsonUtils.toJsonForBeauty(configKeyValueMap));
         if (AppMode.LONG_CONNECT.name().equals(appMode)) {
             log.info("服务节点：\n{}", JsonUtils.toJsonForBeauty(this.serverNodeInfos));
         }
@@ -177,19 +167,17 @@ public class ConfigContext {
      * @return
      */
     public List<AppConfigInfo> getDynamicConfigFromConfigCenter() {
-        String configCenterUrl = this.getConfigCenterUrl() + Constants.DYNAMIC_APP_CONFIG_URI;
+        String configCenterUrl = this.getConfigCenterUrl() + Constants.CHANGED_APP_CONFIG_URI;
 
         Map<String, Object> paramMap = this.reqParamMap();
 
         Map<String, AppConfigInfo> params = new HashMap<>();
         configMap.forEach((k, v) -> {
-            if (v.getDynamic()) {
-                AppConfigInfo configInfo = new AppConfigInfo();
-                configInfo.setKey(k);
-                configInfo.setVersion(v.getVersion());
+            AppConfigInfo configInfo = new AppConfigInfo();
+            configInfo.setKey(k);
+            configInfo.setVersion(v.getVersion());
 
-                params.put(k, configInfo);
-            }
+            params.put(k, configInfo);
         });
         dynamicConfigRefInfos.stream()
                 // 表示引用了字段，但未在配置中心配置
@@ -217,7 +205,6 @@ public class ConfigContext {
         paramMap.put("timeout", longPollingTimeout);
 
         Set<String> allKeys = configMap.values().stream()
-                .filter(AppConfigInfo::getDynamic)
                 .map(AppConfigInfo::getKey)
                 .collect(Collectors.toSet());
         allKeys.addAll(

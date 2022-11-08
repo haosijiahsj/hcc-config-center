@@ -66,7 +66,6 @@ public class ApplicationConfigController {
         LambdaQueryWrapper<ApplicationConfigPo> queryWrapper = new LambdaQueryWrapper<ApplicationConfigPo>()
                 .eq(ApplicationConfigPo::getApplicationId, param.getApplicationId())
                 .like(StrUtil.isNotEmpty(param.getKey()), ApplicationConfigPo::getKey, param.getKey())
-                .eq(ApplicationConfigPo::getDynamic, param.getDynamic())
                 .orderByDesc(ApplicationConfigPo::getUpdateTime)
                 .orderByDesc(ApplicationConfigPo::getId);
 
@@ -98,7 +97,6 @@ public class ApplicationConfigController {
         // 长轮询模式变更后直接推送
         if (AppModeEnum.LONG_POLLING.name().equals(applicationPo.getAppMode())
                 && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())
-                && newAppConfigPo.getDynamic()
                 && valueChanged) {
             applicationConfigPushService.pushConfig(applicationConfigPo.getId(), false);
         }
@@ -148,7 +146,6 @@ public class ApplicationConfigController {
         for (ApplicationConfigPo configPo : applicationConfigPos) {
             configPo.setApplicationId(applicationId);
             configPo.setVersion(configPo.getVersion() == null ? 1 : configPo.getVersion());
-            configPo.setDynamic(configPo.getDynamic() != null && configPo.getDynamic());
             configPo.setCreateTime(now);
             configPo.setUpdateTime(now);
             ApplicationConfigPo existConfigPo = applicationConfigService.lambdaQuery()
@@ -178,7 +175,6 @@ public class ApplicationConfigController {
 
         LambdaQueryWrapper<ApplicationConfigPo> queryWrapper = new LambdaQueryWrapper<ApplicationConfigPo>()
                 .eq(ApplicationConfigPo::getApplicationId, applicationId)
-                .orderByAsc(ApplicationConfigPo::getDynamic)
                 .orderByDesc(ApplicationConfigPo::getUpdateTime)
                 .orderByDesc(ApplicationConfigPo::getId);
 
@@ -214,7 +210,7 @@ public class ApplicationConfigController {
     public void delete(@PathVariable("id") Long id) {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
-        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+        if (AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
             applicationConfigPushService.pushDeletedConfig(id);
         } else {
             applicationConfigService.removeById(id);
@@ -224,9 +220,6 @@ public class ApplicationConfigController {
     @GetMapping("/push/{id}")
     public void push(@PathVariable("id") Long id, @RequestParam(required = false) Boolean forceUpdate) {
         ApplicationConfigPo applicationConfigPo = this.checkApplicationConfigExist(id);
-        if (!applicationConfigPo.getDynamic()) {
-            throw new IllegalArgumentException("非动态配置，无法推送");
-        }
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
         if (!AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
             throw new IllegalArgumentException("应用未上线，无法推送");

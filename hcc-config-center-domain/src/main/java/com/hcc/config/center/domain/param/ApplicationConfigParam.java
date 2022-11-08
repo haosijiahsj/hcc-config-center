@@ -17,7 +17,6 @@ public class ApplicationConfigParam {
     private String key;
     private String value;
     private String comment;
-    private Boolean dynamic;
 
     public void check() {
         Assert.isTrue(applicationId != null, "应用id不能为空");

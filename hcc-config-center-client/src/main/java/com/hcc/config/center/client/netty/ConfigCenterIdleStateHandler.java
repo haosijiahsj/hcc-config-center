@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.netty;
 
-import com.hcc.config.center.client.balance.ServerNodeChooser;
+import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import io.netty.channel.ChannelHandlerContext;

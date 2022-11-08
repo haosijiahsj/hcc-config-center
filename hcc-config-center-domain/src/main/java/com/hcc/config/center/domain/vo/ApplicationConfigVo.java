@@ -17,7 +17,6 @@ public class ApplicationConfigVo extends BaseVo {
     private String key;
     private String value;
     private String comment;
-    private Boolean dynamic;
     private Integer version;
 
 }

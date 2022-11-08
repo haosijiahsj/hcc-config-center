@@ -57,7 +57,6 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         nodeDataVo.setValue(applicationConfigPo.getValue());
         nodeDataVo.setVersion(applicationConfigPo.getVersion());
         nodeDataVo.setForceUpdate(forceUpdate != null ? forceUpdate : false);
-
         zkHandler.addPushConfigNode(nodeDataVo);
 
         ApplicationConfigPushRecordPo pushRecordPo = new ApplicationConfigPushRecordPo();
@@ -83,7 +82,7 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         historyPo.setCreateTime(LocalDateTime.now());
         applicationConfigHistoryService.save(historyPo);
 
-        if (applicationConfigPo.getDynamic() && AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
+        if (AppStatusEnum.ONLINE.name().equals(applicationPo.getAppStatus())) {
             PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
             nodeDataVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
             nodeDataVo.setAppCode(applicationPo.getAppCode());
