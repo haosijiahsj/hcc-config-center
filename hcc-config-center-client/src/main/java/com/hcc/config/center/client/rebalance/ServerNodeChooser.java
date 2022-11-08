@@ -9,6 +9,7 @@ import com.hcc.config.center.client.entity.ServerNodeInfo;
  * @author hushengjun
  * @date 2022/10/22
  */
+@FunctionalInterface
 public interface ServerNodeChooser {
 
     /**
