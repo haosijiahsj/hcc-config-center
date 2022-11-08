@@ -2,6 +2,7 @@ package com.hcc.config.center.server.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import com.hcc.config.center.domain.enums.AppStatusEnum;
+import com.hcc.config.center.domain.enums.PushConfigMsgType;
 import com.hcc.config.center.domain.po.ApplicationConfigPo;
 import com.hcc.config.center.domain.po.ApplicationPo;
 import com.hcc.config.center.domain.vo.AppConfigInfo;
@@ -85,7 +86,7 @@ public class ConfigCenterController {
     }
 
     @GetMapping("/get-changed-app-config")
-    public List<AppConfigInfo> getAppConfigForChanged(@RequestParam String appCode,
+    public List<PushConfigClientMsgVo> getAppConfigForChanged(@RequestParam String appCode,
                                                       @RequestParam String secretKey,
                                                       @RequestParam String keyParam) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
@@ -93,7 +94,7 @@ public class ConfigCenterController {
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, applicationPo.getId())
-                .eq(ApplicationConfigPo::getKey, configParams.stream().map(AppConfigInfo::getKey).collect(Collectors.toSet()))
+                .in(ApplicationConfigPo::getKey, configParams.stream().map(AppConfigInfo::getKey).collect(Collectors.toSet()))
                 .list();
         if (CollUtil.isEmpty(applicationConfigPos)) {
             return Collections.emptyList();
@@ -102,28 +103,32 @@ public class ConfigCenterController {
         Map<String, ApplicationConfigPo> keyApplicationConfigMap = applicationConfigPos.stream()
                 .collect(Collectors.toMap(ApplicationConfigPo::getKey, Function.identity()));
 
-        List<AppConfigInfo> changeConfigs = new ArrayList<>();
+        List<PushConfigClientMsgVo> changeMsgVos = new ArrayList<>();
         for (AppConfigInfo configParam : configParams) {
             ApplicationConfigPo applicationConfigPo = keyApplicationConfigMap.get(configParam.getKey());
-            AppConfigInfo appConfigInfo = new AppConfigInfo();
-            appConfigInfo.setAppCode(applicationPo.getAppCode());
-            appConfigInfo.setKey(configParam.getKey());
+            PushConfigClientMsgVo msgVo = new PushConfigClientMsgVo();
+            msgVo.setAppCode(applicationPo.getAppCode());
+            msgVo.setKey(configParam.getKey());
 
             if (applicationConfigPo == null) {
                 // 删除了
-                appConfigInfo.setVersion(0);
+                msgVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
+                msgVo.setVersion(0);
+                msgVo.setForceUpdate(true);
             } else {
                 if (configParam.getVersion() >= applicationConfigPo.getVersion()) {
                     continue;
                 }
                 // 变化了
-                appConfigInfo.setValue(applicationConfigPo.getValue());
-                appConfigInfo.setVersion(applicationConfigPo.getVersion());
+                msgVo.setMsgType(PushConfigMsgType.CONFIG_UPDATE.name());
+                msgVo.setValue(applicationConfigPo.getValue());
+                msgVo.setVersion(applicationConfigPo.getVersion());
+                msgVo.setForceUpdate(false);
             }
-            changeConfigs.add(appConfigInfo);
+            changeMsgVos.add(msgVo);
         }
 
-        return changeConfigs;
+        return changeMsgVos;
     }
 
     @GetMapping("/get-server-node")

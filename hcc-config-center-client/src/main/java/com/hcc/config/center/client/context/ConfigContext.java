@@ -163,10 +163,10 @@ public class ConfigContext {
     }
 
     /**
-     * 从配置中心获取动态配置
+     * 从配置中心获取变更了的配置
      * @return
      */
-    public List<AppConfigInfo> getChangedConfigFromConfigCenter() {
+    public List<MsgInfo> getChangedConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.CHANGED_APP_CONFIG_URI;
 
         Map<String, Object> paramMap = this.reqParamMap();
@@ -191,7 +191,7 @@ public class ConfigContext {
 
         paramMap.put("keyParam", JsonUtils.toJson(params.values()));
 
-        return RestTemplateUtils.getList(configCenterUrl, paramMap, AppConfigInfo.class);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, MsgInfo.class);
     }
 
     /**

@@ -1,11 +1,10 @@
 package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
-import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
+import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -16,11 +15,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 客户端，接受服务端消息，动态刷新值
@@ -136,35 +133,12 @@ public class ConfigCenterClient {
      * 刷新配置
      */
     private void refreshConfig() {
-        List<AppConfigInfo> appConfigInfos = configContext.getChangedConfigFromConfigCenter();
-        if (StringUtils.isEmpty(appConfigInfos)) {
+        List<MsgInfo> changedMsgInfos = configContext.getChangedConfigFromConfigCenter();
+        if (StringUtils.isEmpty(changedMsgInfos)) {
             return;
         }
 
-        this.convertToMsgInfo(appConfigInfos).forEach(configCenterMsgProcessor::addMsgToQueue);
-    }
-
-    /**
-     * 转换为可处理的消息
-     * @param changedAppConfigInfos
-     * @return
-     */
-    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> changedAppConfigInfos) {
-        return changedAppConfigInfos.stream()
-                .map(c -> {
-                    MsgInfo msgInfo = new MsgInfo();
-                    BeanUtils.copyProperties(c, msgInfo);
-                    if (c.getVersion() == 0) {
-                        msgInfo.setForceUpdate(true);
-                        msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_DELETE.name());
-                    } else {
-                        msgInfo.setForceUpdate(false);
-                        msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_UPDATE.name());
-                    }
-
-                    return msgInfo;
-                })
-                .collect(Collectors.toList());
+        changedMsgInfos.forEach(configCenterMsgProcessor::addMsgToQueue);
     }
 
 }

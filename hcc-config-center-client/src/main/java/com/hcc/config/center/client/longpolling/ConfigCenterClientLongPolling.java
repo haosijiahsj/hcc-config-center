@@ -2,16 +2,13 @@ package com.hcc.config.center.client.longpolling;
 
 import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * 定时拉取任务
@@ -38,11 +35,14 @@ public class ConfigCenterClientLongPolling {
         this.startUpTask();
     }
 
+    /**
+     * 启动长轮询
+     */
     private void startUpLongPolling() {
         Runnable longPollingRunnable = () -> {
             while (true) {
                 if (log.isDebugEnabled()) {
-                    log.debug("开始建立长连接拉取动态配置任务！");
+                    log.debug("开始建立长连接拉取变更配置任务！");
                 }
                 try {
                     this.doPullConfigAndProcess(true);
@@ -56,12 +56,15 @@ public class ConfigCenterClientLongPolling {
         new Thread(longPollingRunnable, "long-polling").start();
     }
 
+    /**
+     * 启动补偿任务
+     */
     private void startUpTask() {
         Runnable runnable = () -> {
             while (true) {
                 this.sleepForSecond(configContext.getPullInterval());
                 if (log.isDebugEnabled()) {
-                    log.debug("开始执行拉取动态配置任务！");
+                    log.debug("开始执行拉取变更配置任务！");
                 }
                 try {
                     this.doPullConfigAndProcess(false);
@@ -88,41 +91,17 @@ public class ConfigCenterClientLongPolling {
         if (isLongPolling) {
             msgInfos = configContext.longPolling();
         } else {
-            List<AppConfigInfo> appConfigInfos = configContext.getChangedConfigFromConfigCenter();
-            msgInfos = this.convertToMsgInfo(appConfigInfos);
+            msgInfos = configContext.getChangedConfigFromConfigCenter();
         }
         if (CollectionUtils.isEmpty(msgInfos)) {
             if (log.isDebugEnabled()) {
-                log.debug("配置中心动态配置为空，等待下次执行");
+                log.debug("配置中心配置未发生变更，等待下次执行");
             }
             return;
         }
 
         // 添加到处理队列
         msgInfos.forEach(configCenterMsgProcessor::addMsgToQueue);
-    }
-
-    /**
-     * 转换为可处理的消息
-     * @param changedAppConfigInfos
-     * @return
-     */
-    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> changedAppConfigInfos) {
-        return changedAppConfigInfos.stream()
-                .map(c -> {
-                    MsgInfo msgInfo = new MsgInfo();
-                    BeanUtils.copyProperties(c, msgInfo);
-                    if (c.getVersion() == 0) {
-                        msgInfo.setForceUpdate(true);
-                        msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_DELETE.name());
-                    } else {
-                        msgInfo.setForceUpdate(false);
-                        msgInfo.setMsgType(MsgInfo.MsgType.CONFIG_UPDATE.name());
-                    }
-
-                    return msgInfo;
-                })
-                .collect(Collectors.toList());
     }
 
     /**
