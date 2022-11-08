@@ -1,15 +1,14 @@
 package com.hcc.config.center.client.processor;
 
-import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
+import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
-import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
+import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
-import com.hcc.config.center.client.entity.ProcessDynamicConfigInfo;
+import com.hcc.config.center.client.entity.ProcessRefreshConfigInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,15 +33,15 @@ public class ConfigCenterMsgProcessor {
     private final BlockingQueue<MsgInfo> blockingQueue = new ArrayBlockingQueue<>(20);
 
     private final ConfigContext configContext;
-    private final ProcessDynamicConfigCallBack callBack;
-    private final Map<String, List<DynamicConfigRefInfo>> keyDynamicConfigRefInfoMap;
+    private final ProcessRefreshConfigCallBack callBack;
+    private final Map<String, List<RefreshConfigRefInfo>> keyRefreshConfigRefInfoMap;
 
-    public ConfigCenterMsgProcessor(ConfigContext configContext, ProcessDynamicConfigCallBack callBack) {
+    public ConfigCenterMsgProcessor(ConfigContext configContext, ProcessRefreshConfigCallBack callBack) {
         this.configContext = configContext;
         this.callBack = callBack;
-        keyDynamicConfigRefInfoMap = configContext.getDynamicConfigRefInfos()
+        keyRefreshConfigRefInfoMap = configContext.getRefreshConfigRefInfos()
                 .stream()
-                .collect(Collectors.groupingBy(DynamicConfigRefInfo::getKey));
+                .collect(Collectors.groupingBy(RefreshConfigRefInfo::getKey));
         this.startWorker();
     }
 
@@ -112,8 +111,8 @@ public class ConfigCenterMsgProcessor {
 
         boolean processSuccess = true;
         // 处理动态配置
-        for (DynamicConfigRefInfo refInfo : keyDynamicConfigRefInfoMap.get(key)) {
-            processSuccess = this.processDynamicConfig(msgInfo, appConfigInfo, refInfo);
+        for (RefreshConfigRefInfo refInfo : keyRefreshConfigRefInfoMap.get(key)) {
+            processSuccess = this.processRefreshConfig(msgInfo, appConfigInfo, refInfo);
         }
 
         // 全部成功才会刷新本地值
@@ -142,24 +141,24 @@ public class ConfigCenterMsgProcessor {
     }
 
     /**
-     * 处理动态字段
+     * 处理需要刷新的字段或方法
      * @param msgInfo
      * @param appConfigInfo
-     * @param dynamicConfigRefInfo
+     * @param refreshConfigRefInfo
      */
-    private boolean processDynamicConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, DynamicConfigRefInfo dynamicConfigRefInfo) {
+    private boolean processRefreshConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, RefreshConfigRefInfo refreshConfigRefInfo) {
         String key = msgInfo.getKey();
         String newValue = msgInfo.getValue();
 
-        Field field = dynamicConfigRefInfo.getField();
-        Method method = dynamicConfigRefInfo.getMethod();
-        Object bean = dynamicConfigRefInfo.getBean();
+        Field field = refreshConfigRefInfo.getField();
+        Method method = refreshConfigRefInfo.getMethod();
+        Object bean = refreshConfigRefInfo.getBean();
 
         String tmpTag = field != null ? "字段" : method != null ? "方法" : "";
         String name = field != null ? field.getName() : method != null ? method.getName() : "";
 
         // 拼装此次处理信息
-        ProcessDynamicConfigInfo info = ProcessDynamicConfigInfo.builder()
+        ProcessRefreshConfigInfo info = ProcessRefreshConfigInfo.builder()
                 .key(key)
                 .version(appConfigInfo == null ? null : appConfigInfo.getVersion())
                 .newVersion(msgInfo.getVersion())
@@ -172,7 +171,7 @@ public class ConfigCenterMsgProcessor {
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
-                Class<? extends ValueConverter> converter = dynamicConfigRefInfo.getConverter();
+                Class<? extends ValueConverter> converter = refreshConfigRefInfo.getConverter();
                 Object targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), converter.newInstance());
                 field.set(bean, targetValue);
                 field.setAccessible(field.isAccessible());
@@ -220,7 +219,7 @@ public class ConfigCenterMsgProcessor {
             return false;
         }
 
-        if (keyDynamicConfigRefInfoMap.get(key) == null) {
+        if (keyRefreshConfigRefInfoMap.get(key) == null) {
             log.warn("key: [{}]没有字段或方法标记需要刷新，忽略", key);
             // 没有引用，但需要更新本地缓存
             this.refreshConfigMap(key, appConfigInfo, msgInfo);

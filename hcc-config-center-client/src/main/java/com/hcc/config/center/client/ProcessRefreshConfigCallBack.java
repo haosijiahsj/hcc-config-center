@@ -1,6 +1,6 @@
 package com.hcc.config.center.client;
 
-import com.hcc.config.center.client.entity.ProcessDynamicConfigInfo;
+import com.hcc.config.center.client.entity.ProcessRefreshConfigInfo;
 
 /**
  * 动态配置处理后回调接口<br/>
@@ -9,18 +9,18 @@ import com.hcc.config.center.client.entity.ProcessDynamicConfigInfo;
  * @author hushengjun
  * @date 2022/10/21
  */
-public interface ProcessDynamicConfigCallBack {
+public interface ProcessRefreshConfigCallBack {
 
     /**
      * 处理动态值成功回调方法
      * @param info
      */
-    default void onSuccess(ProcessDynamicConfigInfo info) {}
+    default void onSuccess(ProcessRefreshConfigInfo info) {}
     /**
      * 处理动态值失败回调方法
      * @param info
      * @param e
      */
-    default void onException(ProcessDynamicConfigInfo info, Exception e) {}
+    default void onException(ProcessRefreshConfigInfo info, Exception e) {}
 
 }

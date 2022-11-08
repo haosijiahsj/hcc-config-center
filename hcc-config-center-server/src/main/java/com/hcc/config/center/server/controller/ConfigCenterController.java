@@ -63,8 +63,7 @@ public class ConfigCenterController {
 
     @GetMapping("/get-app-config")
     public List<AppConfigInfo> getAppConfig(@RequestParam String appCode,
-                                            @RequestParam String secretKey,
-                                            @RequestParam(required = false) Boolean dynamic) {
+                                            @RequestParam String secretKey) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
@@ -108,7 +107,6 @@ public class ConfigCenterController {
             ApplicationConfigPo applicationConfigPo = keyApplicationConfigMap.get(configParam.getKey());
             AppConfigInfo appConfigInfo = new AppConfigInfo();
             appConfigInfo.setAppCode(applicationPo.getAppCode());
-            appConfigInfo.setDynamic(true);
             appConfigInfo.setKey(configParam.getKey());
 
             if (applicationConfigPo == null) {

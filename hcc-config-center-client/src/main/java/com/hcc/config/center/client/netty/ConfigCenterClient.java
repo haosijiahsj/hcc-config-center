@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.netty;
 
-import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
+import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
@@ -35,14 +35,14 @@ public class ConfigCenterClient {
     private String host;
     private int port;
     private ConfigContext configContext;
-    private ProcessDynamicConfigCallBack callBack;
+    private ProcessRefreshConfigCallBack callBack;
     private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
     private NioEventLoopGroup eventLoopGroup;
     private boolean stopFlag = false;
 
-    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessDynamicConfigCallBack callBack, ServerNodeChooser serverNodeChooser) {
+    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessRefreshConfigCallBack callBack, ServerNodeChooser serverNodeChooser) {
         this.host = host;
         this.port = port;
         this.configContext = configContext;
@@ -125,7 +125,7 @@ public class ConfigCenterClient {
             if (future.isSuccess()) {
                 log.info("动态推送客户端{}成功！", isReconnect ? "重启" : "启动");
                 if (isReconnect) {
-                    this.refreshDynamicConfig();
+                    this.refreshConfig();
                     log.info("重连后刷新动态配置成功！");
                 }
             }
@@ -133,10 +133,10 @@ public class ConfigCenterClient {
     }
 
     /**
-     * 刷新动态配置
+     * 刷新配置
      */
-    private void refreshDynamicConfig() {
-        List<AppConfigInfo> appConfigInfos = configContext.getDynamicConfigFromConfigCenter();
+    private void refreshConfig() {
+        List<AppConfigInfo> appConfigInfos = configContext.getChangedConfigFromConfigCenter();
         if (StringUtils.isEmpty(appConfigInfos)) {
             return;
         }
@@ -146,11 +146,11 @@ public class ConfigCenterClient {
 
     /**
      * 转换为可处理的消息
-     * @param dynamicAppConfigInfos
+     * @param changedAppConfigInfos
      * @return
      */
-    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> dynamicAppConfigInfos) {
-        return dynamicAppConfigInfos.stream()
+    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> changedAppConfigInfos) {
+        return changedAppConfigInfos.stream()
                 .map(c -> {
                     MsgInfo msgInfo = new MsgInfo();
                     BeanUtils.copyProperties(c, msgInfo);

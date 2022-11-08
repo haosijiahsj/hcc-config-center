@@ -6,7 +6,7 @@ import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
-import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
+import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +50,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
             Class<? extends ValueConverter> converter = configValue.converter();
             this.injectConfigValue(configKey, converter, bean, field);
             if (configValue.refresh()) {
-                this.collectDynamicConfigInfo(configKey, converter, beanName, field, null, bean);
+                this.collectRefreshConfigInfo(configKey, converter, beanName, field, null, bean);
             }
         }
 
@@ -72,7 +72,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
                         bean.getClass().getName(), method.getName()));
             }
             this.invokeMethod(configListener.value(), bean, method);
-            this.collectDynamicConfigInfo(configListener.value(), null, beanName, null, method, bean);
+            this.collectRefreshConfigInfo(configListener.value(), null, beanName, null, method, bean);
         }
 
         return bean;
@@ -149,16 +149,16 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param beanName
      * @param field
      */
-    private void collectDynamicConfigInfo(String configKey, Class<? extends ValueConverter> converter, String beanName, Field field, Method method, Object bean) {
-        DynamicConfigRefInfo dynamicConfigRefInfo = new DynamicConfigRefInfo();
-        dynamicConfigRefInfo.setKey(configKey);
-        dynamicConfigRefInfo.setConverter(converter);
-        dynamicConfigRefInfo.setField(field);
-        dynamicConfigRefInfo.setMethod(method);
-        dynamicConfigRefInfo.setBeanName(beanName);
-        dynamicConfigRefInfo.setBean(bean);
+    private void collectRefreshConfigInfo(String configKey, Class<? extends ValueConverter> converter, String beanName, Field field, Method method, Object bean) {
+        RefreshConfigRefInfo refreshConfigRefInfo = new RefreshConfigRefInfo();
+        refreshConfigRefInfo.setKey(configKey);
+        refreshConfigRefInfo.setConverter(converter);
+        refreshConfigRefInfo.setField(field);
+        refreshConfigRefInfo.setMethod(method);
+        refreshConfigRefInfo.setBeanName(beanName);
+        refreshConfigRefInfo.setBean(bean);
 
-        configContext.addDynamicConfigRefInfo(dynamicConfigRefInfo);
+        configContext.addRefreshConfigRefInfo(refreshConfigRefInfo);
     }
 
 }

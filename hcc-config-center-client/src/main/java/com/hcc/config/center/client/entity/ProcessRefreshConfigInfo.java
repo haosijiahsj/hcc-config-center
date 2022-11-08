@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class ProcessDynamicConfigInfo {
+public class ProcessRefreshConfigInfo {
 
     private String key;
     private Integer version;

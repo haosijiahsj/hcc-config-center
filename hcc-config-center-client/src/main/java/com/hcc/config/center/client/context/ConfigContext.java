@@ -4,7 +4,7 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.Constants;
-import com.hcc.config.center.client.entity.DynamicConfigRefInfo;
+import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.JsonUtils;
@@ -68,7 +68,7 @@ public class ConfigContext {
     // 服务节点信息，建立长连接使用
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
     // 动态字段引用信息，使用DynamicValue注解的字段、ListenConfig注解的方法
-    private List<DynamicConfigRefInfo> dynamicConfigRefInfos = new ArrayList<>();
+    private List<RefreshConfigRefInfo> refreshConfigRefInfos = new ArrayList<>();
 
     /**
      * 配置中心url
@@ -166,7 +166,7 @@ public class ConfigContext {
      * 从配置中心获取动态配置
      * @return
      */
-    public List<AppConfigInfo> getDynamicConfigFromConfigCenter() {
+    public List<AppConfigInfo> getChangedConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.CHANGED_APP_CONFIG_URI;
 
         Map<String, Object> paramMap = this.reqParamMap();
@@ -179,7 +179,7 @@ public class ConfigContext {
 
             params.put(k, configInfo);
         });
-        dynamicConfigRefInfos.stream()
+        refreshConfigRefInfos.stream()
                 // 表示引用了字段，但未在配置中心配置
                 .filter(f -> configMap.get(f.getKey()) == null)
                 .forEach(fieldInfo -> {
@@ -208,7 +208,7 @@ public class ConfigContext {
                 .map(AppConfigInfo::getKey)
                 .collect(Collectors.toSet());
         allKeys.addAll(
-                dynamicConfigRefInfos.stream().map(DynamicConfigRefInfo::getKey).collect(Collectors.toList())
+                refreshConfigRefInfos.stream().map(RefreshConfigRefInfo::getKey).collect(Collectors.toList())
         );
         paramMap.put("keys", String.join(",", allKeys));
 
@@ -230,10 +230,10 @@ public class ConfigContext {
 
     /**
      * 添加动态字段信息
-     * @param dynamicConfigRefInfo
+     * @param refreshConfigRefInfo
      */
-    public synchronized void addDynamicConfigRefInfo(DynamicConfigRefInfo dynamicConfigRefInfo) {
-        dynamicConfigRefInfos.add(dynamicConfigRefInfo);
+    public synchronized void addRefreshConfigRefInfo(RefreshConfigRefInfo refreshConfigRefInfo) {
+        refreshConfigRefInfos.add(refreshConfigRefInfo);
     }
 
     /**

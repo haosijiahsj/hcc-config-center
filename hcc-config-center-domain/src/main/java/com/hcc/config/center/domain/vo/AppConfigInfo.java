@@ -15,6 +15,5 @@ public class AppConfigInfo {
     private String key;
     private String value;
     private Integer version;
-    private Boolean dynamic;
 
 }

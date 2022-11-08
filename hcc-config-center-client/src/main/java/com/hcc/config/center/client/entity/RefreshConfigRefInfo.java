@@ -7,13 +7,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- * 动态配置引用信息
+ * 刷新的配置引用信息
  *
  * @author shengjun.hu
  * @date 2022/10/8
  */
 @Data
-public class DynamicConfigRefInfo {
+public class RefreshConfigRefInfo {
 
     private String beanName;
     private Object bean;

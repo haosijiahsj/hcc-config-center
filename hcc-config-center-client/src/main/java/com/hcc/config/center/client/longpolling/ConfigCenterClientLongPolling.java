@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.longpolling;
 
-import com.hcc.config.center.client.ProcessDynamicConfigCallBack;
+import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
@@ -25,7 +25,7 @@ public class ConfigCenterClientLongPolling {
     private final ConfigContext configContext;
     private final ConfigCenterMsgProcessor configCenterMsgProcessor;
 
-    public ConfigCenterClientLongPolling(ConfigContext configContext, ProcessDynamicConfigCallBack callBack) {
+    public ConfigCenterClientLongPolling(ConfigContext configContext, ProcessRefreshConfigCallBack callBack) {
         this.configContext = configContext;
         this.configCenterMsgProcessor = new ConfigCenterMsgProcessor(configContext, callBack);
     }
@@ -88,7 +88,7 @@ public class ConfigCenterClientLongPolling {
         if (isLongPolling) {
             msgInfos = configContext.longPolling();
         } else {
-            List<AppConfigInfo> appConfigInfos = configContext.getDynamicConfigFromConfigCenter();
+            List<AppConfigInfo> appConfigInfos = configContext.getChangedConfigFromConfigCenter();
             msgInfos = this.convertToMsgInfo(appConfigInfos);
         }
         if (CollectionUtils.isEmpty(msgInfos)) {
@@ -104,11 +104,11 @@ public class ConfigCenterClientLongPolling {
 
     /**
      * 转换为可处理的消息
-     * @param dynamicAppConfigInfos
+     * @param changedAppConfigInfos
      * @return
      */
-    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> dynamicAppConfigInfos) {
-        return dynamicAppConfigInfos.stream()
+    private List<MsgInfo> convertToMsgInfo(List<AppConfigInfo> changedAppConfigInfos) {
+        return changedAppConfigInfos.stream()
                 .map(c -> {
                     MsgInfo msgInfo = new MsgInfo();
                     BeanUtils.copyProperties(c, msgInfo);
