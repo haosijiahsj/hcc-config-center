@@ -48,6 +48,9 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
     @Override
     public void pushConfig(Long id, Boolean forceUpdate) {
         ApplicationConfigPo applicationConfigPo = applicationConfigService.getById(id);
+        if (applicationConfigPo == null) {
+            throw new IllegalArgumentException("配置不存在！");
+        }
         ApplicationPo applicationPo = applicationService.getById(applicationConfigPo.getApplicationId());
 
         PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
@@ -57,6 +60,12 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
         nodeDataVo.setValue(applicationConfigPo.getValue());
         nodeDataVo.setVersion(applicationConfigPo.getVersion());
         nodeDataVo.setForceUpdate(forceUpdate != null ? forceUpdate : false);
+
+        boolean existPushRecord = applicationConfigPushRecordService.lambdaQuery()
+                .eq(ApplicationConfigPushRecordPo::getApplicationConfigId, id)
+                .exists();
+        // 存在推送记录则表示为更新，否则为创建
+        nodeDataVo.setMsgType(existPushRecord ? PushConfigMsgType.CONFIG_UPDATE.name() : PushConfigMsgType.CONFIG_CREATE.name());
         zkHandler.addPushConfigNode(nodeDataVo);
 
         ApplicationConfigPushRecordPo pushRecordPo = new ApplicationConfigPushRecordPo();
@@ -86,6 +95,7 @@ public class ApplicationConfigPushServiceImpl implements ApplicationConfigPushSe
             PushConfigNodeDataVo nodeDataVo = new PushConfigNodeDataVo();
             nodeDataVo.setMsgType(PushConfigMsgType.CONFIG_DELETE.name());
             nodeDataVo.setAppCode(applicationPo.getAppCode());
+            nodeDataVo.setAppMode(applicationPo.getAppMode());
             nodeDataVo.setKey(applicationConfigPo.getKey());
             nodeDataVo.setValue(null);
             // 删除的版本设置为0，并设置强制推送

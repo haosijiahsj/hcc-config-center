@@ -1,10 +1,11 @@
 package com.hcc.config.center.client.config;
 
+import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
-import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
+import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.spring.ConfigCenterBeanPostProcessor;
 import com.hcc.config.center.client.spring.ConfigCenterClientInitializer;
 import org.springframework.beans.factory.ObjectProvider;
@@ -12,6 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 配置类，使用@Import注解生效
@@ -93,10 +97,12 @@ public class ConfigCenterConfig {
      */
     @Bean(destroyMethod = "stopClient")
     public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessRefreshConfigCallBack> callBackObjectProvider,
+                                                                       ObjectProvider<List<ConfigChangeHandler>> handlersObjectProvider,
                                                                        ObjectProvider<ServerNodeChooser> serverNodeChooserObjectProvider) {
         ProcessRefreshConfigCallBack callBack = callBackObjectProvider.getIfAvailable();
+        List<ConfigChangeHandler> configChangeHandlers = handlersObjectProvider.getIfAvailable(Collections::emptyList);
         ServerNodeChooser serverNodeChooser = serverNodeChooserObjectProvider.getIfAvailable();
-        ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack, serverNodeChooser);
+        ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack, configChangeHandlers, serverNodeChooser);
         initializer.startClient();
 
         return initializer;

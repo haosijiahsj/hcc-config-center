@@ -1,5 +1,6 @@
 package com.hcc.config.center.client.netty;
 
+import com.hcc.config.center.client.entity.MsgEventType;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import com.hcc.config.center.client.utils.JsonUtils;
@@ -26,7 +27,7 @@ public class ConfigCenterClientHandler extends SimpleChannelInboundHandler<ByteB
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         MsgInfo msgInfo = new MsgInfo();
-        msgInfo.setMsgType(MsgInfo.MsgType.INIT.name());
+        msgInfo.setMsgType(MsgEventType.INIT.name());
         msgInfo.setAppCode(configCenterMsgProcessor.getAppCode());
 
         // 上报appCode

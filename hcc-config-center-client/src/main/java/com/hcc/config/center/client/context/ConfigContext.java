@@ -1,5 +1,6 @@
 package com.hcc.config.center.client.context;
 
+import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,8 +69,10 @@ public class ConfigContext {
     private Map<String, String> configKeyValueMap = new HashMap<>();
     // 服务节点信息，建立长连接使用
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
-    // 动态字段引用信息，使用DynamicValue注解的字段、ListenConfig注解的方法
+    // 动态字段引用信息，使用ConfigValue(refresh = true)注解的字段、ListenConfig注解的方法
     private List<RefreshConfigRefInfo> refreshConfigRefInfos = new ArrayList<>();
+    // 配置变更处理器
+    private List<ConfigChangeHandler> configChangeHandlers = new ArrayList<>();
 
     /**
      * 配置中心url
@@ -188,6 +192,18 @@ public class ConfigContext {
                     configInfo.setVersion(0);
                     params.putIfAbsent(fieldInfo.getKey(), configInfo);
                 });
+        for (ConfigChangeHandler handler : configChangeHandlers) {
+            List<String> keys = handler.keys();
+            for (String key : keys) {
+                if (configMap.get(key) != null) {
+                    continue;
+                }
+                AppConfigInfo configInfo = new AppConfigInfo();
+                configInfo.setKey(key);
+                configInfo.setVersion(0);
+                params.putIfAbsent(key, configInfo);
+            }
+        }
 
         paramMap.put("keyParam", JsonUtils.toJson(params.values()));
 
@@ -209,6 +225,9 @@ public class ConfigContext {
                 .collect(Collectors.toSet());
         allKeys.addAll(
                 refreshConfigRefInfos.stream().map(RefreshConfigRefInfo::getKey).collect(Collectors.toList())
+        );
+        allKeys.addAll(
+                configChangeHandlers.stream().map(ConfigChangeHandler::keys).flatMap(Collection::stream).collect(Collectors.toList())
         );
         paramMap.put("keys", String.join(",", allKeys));
 
@@ -234,6 +253,14 @@ public class ConfigContext {
      */
     public synchronized void addRefreshConfigRefInfo(RefreshConfigRefInfo refreshConfigRefInfo) {
         refreshConfigRefInfos.add(refreshConfigRefInfo);
+    }
+
+    /**
+     * 添加处理器
+     * @param handler
+     */
+    public synchronized void addConfigChangeHandler(ConfigChangeHandler handler) {
+        configChangeHandlers.add(handler);
     }
 
     /**

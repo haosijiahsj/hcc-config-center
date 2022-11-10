@@ -19,11 +19,4 @@ public class MsgInfo {
     private Integer version;
     private Boolean forceUpdate;
 
-    public enum MsgType {
-        INIT,
-        CONFIG_CREATE,
-        CONFIG_UPDATE,
-        CONFIG_DELETE
-    }
-
 }

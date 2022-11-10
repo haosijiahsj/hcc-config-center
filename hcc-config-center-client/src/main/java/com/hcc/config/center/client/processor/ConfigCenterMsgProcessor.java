@@ -1,10 +1,13 @@
 package com.hcc.config.center.client.processor;
 
+import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.entity.ConfigChangeEvent;
+import com.hcc.config.center.client.entity.MsgEventType;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ProcessRefreshConfigInfo;
@@ -12,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -111,8 +115,21 @@ public class ConfigCenterMsgProcessor {
 
         boolean processSuccess = true;
         // 处理动态配置
-        for (RefreshConfigRefInfo refInfo : keyRefreshConfigRefInfoMap.get(key)) {
+        for (RefreshConfigRefInfo refInfo : keyRefreshConfigRefInfoMap.getOrDefault(key, Collections.emptyList())) {
             processSuccess = this.processRefreshConfig(msgInfo, appConfigInfo, refInfo);
+        }
+        // 调用handler
+        for (ConfigChangeHandler handler : configContext.getConfigChangeHandlers()) {
+            if (handler.keys() == null || !handler.keys().contains(key)) {
+                continue;
+            }
+            ConfigChangeEvent event = new ConfigChangeEvent();
+            event.setKey(key);
+            event.setEventType(MsgEventType.valueOf(msgInfo.getMsgType()));
+            event.setOldValue(appConfigInfo == null ? null : appConfigInfo.getValue());
+            event.setNewValue(msgInfo.getValue());
+
+            handler.onChange(event);
         }
 
         // 全部成功才会刷新本地值
@@ -129,7 +146,7 @@ public class ConfigCenterMsgProcessor {
      */
     private void refreshConfigMap(String key, AppConfigInfo appConfigInfo, MsgInfo msgInfo) {
         // 本地值刷新
-        if (appConfigInfo == null || appConfigInfo.getVersion() < msgInfo.getVersion()) {
+        if (appConfigInfo == null || appConfigInfo.getVersion() < msgInfo.getVersion() || msgInfo.getForceUpdate()) {
             if (appConfigInfo == null) {
                 appConfigInfo = new AppConfigInfo();
                 appConfigInfo.setKey(key);
@@ -219,8 +236,8 @@ public class ConfigCenterMsgProcessor {
             return false;
         }
 
-        if (keyRefreshConfigRefInfoMap.get(key) == null) {
-            log.warn("key: [{}]没有字段或方法标记需要刷新，忽略", key);
+        if (keyRefreshConfigRefInfoMap.get(key) == null && configContext.getConfigChangeHandlers().isEmpty()) {
+            log.warn("key: [{}]没有字段、方法标记需要刷新，没有定义ConfigChangeHandler，忽略", key);
             // 没有引用，但需要更新本地缓存
             this.refreshConfigMap(key, appConfigInfo, msgInfo);
             return false;

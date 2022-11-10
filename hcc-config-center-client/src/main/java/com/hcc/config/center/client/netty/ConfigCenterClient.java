@@ -39,7 +39,8 @@ public class ConfigCenterClient {
     private NioEventLoopGroup eventLoopGroup;
     private boolean stopFlag = false;
 
-    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessRefreshConfigCallBack callBack, ServerNodeChooser serverNodeChooser) {
+    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessRefreshConfigCallBack callBack,
+                              ServerNodeChooser serverNodeChooser) {
         this.host = host;
         this.port = port;
         this.configContext = configContext;
