@@ -19,9 +19,16 @@ public interface ConfigChangeHandler {
     List<String> keys();
 
     /**
-     * 配置变更事件
+     * 配置变更事件，不要在此执行耗时操作
      * @param event
      */
     void onChange(ConfigChangeEvent event);
+
+    /**
+     * onChange方法执行异常，不要在此执行耗时操作
+     */
+    default void exceptionCaught(ConfigChangeEvent event, Exception e) {
+        e.printStackTrace();
+    }
 
 }

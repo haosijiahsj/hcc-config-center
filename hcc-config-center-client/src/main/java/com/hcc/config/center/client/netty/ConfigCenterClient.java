@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.netty;
 
-import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
+import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
@@ -32,14 +32,14 @@ public class ConfigCenterClient {
     private String host;
     private int port;
     private ConfigContext configContext;
-    private ProcessRefreshConfigCallBack callBack;
+    private ConfigRefreshCallBack callBack;
     private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
     private NioEventLoopGroup eventLoopGroup;
     private boolean stopFlag = false;
 
-    public ConfigCenterClient(String host, int port, ConfigContext configContext, ProcessRefreshConfigCallBack callBack,
+    public ConfigCenterClient(String host, int port, ConfigContext configContext, ConfigRefreshCallBack callBack,
                               ServerNodeChooser serverNodeChooser) {
         this.host = host;
         this.port = port;

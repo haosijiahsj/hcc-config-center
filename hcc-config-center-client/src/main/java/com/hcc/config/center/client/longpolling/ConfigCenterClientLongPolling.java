@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.longpolling;
 
-import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
+import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
@@ -22,7 +22,7 @@ public class ConfigCenterClientLongPolling {
     private final ConfigContext configContext;
     private final ConfigCenterMsgProcessor configCenterMsgProcessor;
 
-    public ConfigCenterClientLongPolling(ConfigContext configContext, ProcessRefreshConfigCallBack callBack) {
+    public ConfigCenterClientLongPolling(ConfigContext configContext, ConfigRefreshCallBack callBack) {
         this.configContext = configContext;
         this.configCenterMsgProcessor = new ConfigCenterMsgProcessor(configContext, callBack);
     }

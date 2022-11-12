@@ -1,7 +1,7 @@
 package com.hcc.config.center.client.spring;
 
 import com.hcc.config.center.client.ConfigChangeHandler;
-import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
+import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.ConfigChangeEvent;
@@ -13,9 +13,7 @@ import com.hcc.config.center.client.rebalance.DefaultServerNodeChooser;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 客户端初始化器
@@ -27,14 +25,14 @@ import java.util.Map;
 public class ConfigCenterClientInitializer {
 
     private final ConfigContext configContext;
-    private final ProcessRefreshConfigCallBack callBack;
+    private final ConfigRefreshCallBack callBack;
     private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterClient configCenterClient;
 
-    public ConfigCenterClientInitializer(ConfigContext configContext, ProcessRefreshConfigCallBack callBack, List<ConfigChangeHandler> configChangeHandlers, ServerNodeChooser serverNodeChooser) {
+    public ConfigCenterClientInitializer(ConfigContext configContext, ConfigRefreshCallBack callBack, List<ConfigChangeHandler> configChangeHandlers, ServerNodeChooser serverNodeChooser) {
         this.configContext = configContext;
-        this.callBack = callBack == null ? new ProcessRefreshConfigCallBack() {} : callBack;
+        this.callBack = callBack == null ? new ConfigRefreshCallBack() {} : callBack;
         this.serverNodeChooser = serverNodeChooser;
         if (AppMode.LONG_CONNECT.name().equals(configContext.getAppMode()) && this.serverNodeChooser == null) {
             this.serverNodeChooser = new DefaultServerNodeChooser();

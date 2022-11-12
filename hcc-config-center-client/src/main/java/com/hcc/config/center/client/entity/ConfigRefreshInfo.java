@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class ProcessRefreshConfigInfo {
+public class ConfigRefreshInfo {
 
     private String key;
     private Integer version;

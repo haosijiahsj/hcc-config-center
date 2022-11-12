@@ -1,7 +1,7 @@
 package com.hcc.config.center.client.processor;
 
 import com.hcc.config.center.client.ConfigChangeHandler;
-import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
+import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
@@ -10,7 +10,7 @@ import com.hcc.config.center.client.entity.ConfigChangeEvent;
 import com.hcc.config.center.client.entity.MsgEventType;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
-import com.hcc.config.center.client.entity.ProcessRefreshConfigInfo;
+import com.hcc.config.center.client.entity.ConfigRefreshInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -37,10 +37,10 @@ public class ConfigCenterMsgProcessor {
     private final BlockingQueue<MsgInfo> blockingQueue = new ArrayBlockingQueue<>(20);
 
     private final ConfigContext configContext;
-    private final ProcessRefreshConfigCallBack callBack;
+    private final ConfigRefreshCallBack callBack;
     private final Map<String, List<RefreshConfigRefInfo>> keyRefreshConfigRefInfoMap;
 
-    public ConfigCenterMsgProcessor(ConfigContext configContext, ProcessRefreshConfigCallBack callBack) {
+    public ConfigCenterMsgProcessor(ConfigContext configContext, ConfigRefreshCallBack callBack) {
         this.configContext = configContext;
         this.callBack = callBack;
         keyRefreshConfigRefInfoMap = configContext.getRefreshConfigRefInfos()
@@ -129,7 +129,11 @@ public class ConfigCenterMsgProcessor {
             event.setOldValue(appConfigInfo == null ? null : appConfigInfo.getValue());
             event.setNewValue(msgInfo.getValue());
 
-            handler.onChange(event);
+            try {
+                handler.onChange(event);
+            } catch (Exception e) {
+                handler.exceptionCaught(event, e);
+            }
         }
 
         // 全部成功才会刷新本地值
@@ -175,7 +179,7 @@ public class ConfigCenterMsgProcessor {
         String name = field != null ? field.getName() : method != null ? method.getName() : "";
 
         // 拼装此次处理信息
-        ProcessRefreshConfigInfo info = ProcessRefreshConfigInfo.builder()
+        ConfigRefreshInfo info = ConfigRefreshInfo.builder()
                 .key(key)
                 .version(appConfigInfo == null ? null : appConfigInfo.getVersion())
                 .newVersion(msgInfo.getVersion())

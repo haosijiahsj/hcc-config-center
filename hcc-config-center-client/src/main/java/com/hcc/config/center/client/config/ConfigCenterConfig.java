@@ -3,7 +3,7 @@ package com.hcc.config.center.client.config;
 import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.DefaultConfigServiceImpl;
-import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
+import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
@@ -99,10 +99,10 @@ public class ConfigCenterConfig {
      * @return
      */
     @Bean(destroyMethod = "stopClient")
-    public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ProcessRefreshConfigCallBack> callBackObjectProvider,
+    public ConfigCenterClientInitializer configCenterClientInitializer(ObjectProvider<ConfigRefreshCallBack> callBackObjectProvider,
                                                                        ObjectProvider<List<ConfigChangeHandler>> handlersObjectProvider,
                                                                        ObjectProvider<ServerNodeChooser> serverNodeChooserObjectProvider) {
-        ProcessRefreshConfigCallBack callBack = callBackObjectProvider.getIfAvailable();
+        ConfigRefreshCallBack callBack = callBackObjectProvider.getIfAvailable();
         List<ConfigChangeHandler> configChangeHandlers = handlersObjectProvider.getIfAvailable(Collections::emptyList);
         ServerNodeChooser serverNodeChooser = serverNodeChooserObjectProvider.getIfAvailable();
         ConfigCenterClientInitializer initializer = new ConfigCenterClientInitializer(configContext, callBack, configChangeHandlers, serverNodeChooser);
