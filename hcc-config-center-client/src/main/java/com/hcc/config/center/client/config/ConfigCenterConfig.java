@@ -2,6 +2,7 @@ package com.hcc.config.center.client.config;
 
 import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.ConfigService;
+import com.hcc.config.center.client.DefaultConfigServiceImpl;
 import com.hcc.config.center.client.ProcessRefreshConfigCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
@@ -11,6 +12,7 @@ import com.hcc.config.center.client.spring.ConfigCenterClientInitializer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
@@ -77,8 +79,9 @@ public class ConfigCenterConfig {
      * @return
      */
     @Bean
+    @Primary
     public ConfigService configService() {
-        return new ConfigService(configContext);
+        return new DefaultConfigServiceImpl(configContext);
     }
 
     /**

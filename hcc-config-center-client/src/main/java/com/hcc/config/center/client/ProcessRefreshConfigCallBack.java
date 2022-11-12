@@ -3,7 +3,7 @@ package com.hcc.config.center.client;
 import com.hcc.config.center.client.entity.ProcessRefreshConfigInfo;
 
 /**
- * 动态配置处理后回调接口<br/>
+ * ConfigValue,ConfigListener注解处理后回调接口<br/>
  * 定义类实现后暴露为bean即可
  *
  * @author hushengjun
