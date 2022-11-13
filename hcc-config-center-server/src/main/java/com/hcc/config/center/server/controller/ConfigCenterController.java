@@ -65,7 +65,7 @@ public class ConfigCenterController {
     @GetMapping("/get-app-config")
     public List<AppConfigInfo> getAppConfig(@RequestParam String appCode,
                                             @RequestParam String secretKey,
-                                            @RequestParam List<String> keys) {
+                                            @RequestParam(required = false) List<String> keys) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
