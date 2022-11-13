@@ -4,6 +4,7 @@ import com.hcc.config.center.client.ConfigChangeHandler;
 import com.hcc.config.center.client.ConfigService;
 import com.hcc.config.center.client.DefaultConfigServiceImpl;
 import com.hcc.config.center.client.ConfigRefreshCallBack;
+import com.hcc.config.center.client.RemoteConfigServiceImpl;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
@@ -75,13 +76,24 @@ public class ConfigCenterConfig {
     }
 
     /**
-     * 暴露ConfigService bean
+     * 暴露ConfigService bean<br/>
+     * 本地缓存中获取
      * @return
      */
-    @Bean
     @Primary
+    @Bean("defaultConfigService")
     public ConfigService configService() {
         return new DefaultConfigServiceImpl(configContext);
+    }
+
+    /**
+     * 暴露ConfigService bean<br/>
+     * 远程服务器获取，任何时间都是最新值，不要在并发高的场景下使用
+     * @return
+     */
+    @Bean("remoteConfigService")
+    public ConfigService remoteConfigService() {
+        return new RemoteConfigServiceImpl(configContext);
     }
 
     /**

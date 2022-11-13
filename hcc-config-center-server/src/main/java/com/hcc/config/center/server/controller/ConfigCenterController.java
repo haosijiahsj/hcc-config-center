@@ -64,11 +64,13 @@ public class ConfigCenterController {
 
     @GetMapping("/get-app-config")
     public List<AppConfigInfo> getAppConfig(@RequestParam String appCode,
-                                            @RequestParam String secretKey) {
+                                            @RequestParam String secretKey,
+                                            @RequestParam List<String> keys) {
         ApplicationPo applicationPo = this.checkApplication(appCode, secretKey);
 
         List<ApplicationConfigPo> applicationConfigPos = applicationConfigService.lambdaQuery()
                 .eq(ApplicationConfigPo::getApplicationId, applicationPo.getId())
+                .in(CollUtil.isNotEmpty(keys), ApplicationConfigPo::getKey, keys)
                 .list();
         if (CollUtil.isEmpty(applicationConfigPos)) {
             return Collections.emptyList();

@@ -5,8 +5,8 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.Constants;
-import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +102,7 @@ public class ConfigContext {
      */
     public void initContext() {
         // 初始化获取配置中心所有配置
-        List<AppConfigInfo> appConfigInfos = this.getConfigFromConfigCenter();
+        List<AppConfigInfo> appConfigInfos = this.getConfigFromConfigCenter(Collections.emptyList());
         appConfigInfos.forEach(appConfigInfo -> {
             this.configKeyValueMap.put(appConfigInfo.getKey(), appConfigInfo.getValue());
             this.configMap.put(appConfigInfo.getKey(), appConfigInfo);
@@ -157,13 +158,17 @@ public class ConfigContext {
     }
 
     /**
-     * 从配置中心拉取应用的所有配置
+     * 从配置中心拉取应用的指定keys的配置
      * @return
      */
-    private List<AppConfigInfo> getConfigFromConfigCenter() {
+    public List<AppConfigInfo> getConfigFromConfigCenter(List<String> keys) {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
+        Map<String, Object> paramMap = this.reqParamMap();
+        if (keys != null && !keys.isEmpty()) {
+            paramMap.put("keys", keys);
+        }
 
-        return RestTemplateUtils.getList(configCenterUrl, this.reqParamMap(), AppConfigInfo.class);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, AppConfigInfo.class);
     }
 
     /**
@@ -271,29 +276,6 @@ public class ConfigContext {
     public synchronized void refreshConfigMap(String key, AppConfigInfo appConfigInfo) {
         configMap.put(key, appConfigInfo);
         configKeyValueMap.put(key, appConfigInfo.getValue());
-    }
-
-    /**
-     * 获取指定key的版本
-     * @param key
-     * @return
-     */
-    public Integer getConfigVersion(String key) {
-        AppConfigInfo appConfigInfo = configMap.get(key);
-        if (appConfigInfo == null) {
-            return null;
-        }
-
-        return appConfigInfo.getVersion();
-    }
-
-    /**
-     * 获取配置值
-     * @param key
-     * @return
-     */
-    public String getConfigValue(String key) {
-        return configKeyValueMap.get(key);
     }
 
     /**

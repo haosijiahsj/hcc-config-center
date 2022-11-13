@@ -13,16 +13,6 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 public interface ConfigService {
 
     /**
-     * 获取指定key的版本
-     * @param key
-     * @return
-     */
-    default Integer getConfigVersion(String key) {
-        AppConfigInfo configInfo = this.getConfigInfo(key);
-        return configInfo == null ? null : configInfo.getVersion();
-    }
-
-    /**
      * 获取指定key的配置值
      * @param key
      * @return
