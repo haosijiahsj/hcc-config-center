@@ -1,12 +1,13 @@
 package com.hcc.config.center.client.spring;
 
-import com.hcc.config.center.client.annotation.ConfigValue;
 import com.hcc.config.center.client.annotation.ConfigListener;
+import com.hcc.config.center.client.annotation.ConfigValue;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
+import com.hcc.config.center.client.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
@@ -101,13 +102,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         String configValue = appConfigInfo.getValue();
         try {
-            if (!field.isAccessible()) {
-                field.setAccessible(true);
-            }
             Object targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), converter.newInstance());
-            field.set(bean, targetValue);
-            field.setAccessible(field.isAccessible());
-
+            ReflectUtils.setValue(bean, field, targetValue);
             log.info("类：[{}]，字段：[{}]，key: [{}]，注入值：[{}]完成", bean.getClass().getName(), field.getName(), configKey, configValue);
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
@@ -131,12 +127,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         String configValue = appConfigInfo.getValue();
         try {
-            if (!method.isAccessible()) {
-                method.setAccessible(true);
-            }
-            method.invoke(bean, configValue);
-            method.setAccessible(method.isAccessible());
-
+            ReflectUtils.invokeMethod(bean, method, configValue);
             log.info("类：[{}]，方法：[{}]，key: [{}]，value：[{}]，调用成功", bean.getClass().getName(), method.getName(), configKey, configValue);
         } catch (Exception e) {
             throw new IllegalArgumentException(e);

@@ -11,7 +11,7 @@ public class StringToCharacterValueConverter implements ValueConverter<Character
     @Override
     public Character convert(String value, Class targetClass) {
         if (value.length() > 1) {
-            throw new IllegalArgumentException(String.format("值：[%s]无法转换为char", value));
+            throw new IllegalArgumentException(String.format("非法的char值：[%s]", value));
         }
 
         return value.charAt(0);

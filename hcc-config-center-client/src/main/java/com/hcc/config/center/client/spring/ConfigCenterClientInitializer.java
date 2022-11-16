@@ -11,6 +11,7 @@ import com.hcc.config.center.client.longpolling.ConfigCenterClientLongPolling;
 import com.hcc.config.center.client.netty.ConfigCenterClient;
 import com.hcc.config.center.client.rebalance.DefaultServerNodeChooser;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
+import com.hcc.config.center.client.utils.CollUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class ConfigCenterClientInitializer {
      * 初始化调用handler
      */
     private void invokeConfigChangeHandler(List<ConfigChangeHandler> configChangeHandlers) {
-        if (configChangeHandlers == null || configChangeHandlers.isEmpty()) {
+        if (CollUtils.isEmpty(configChangeHandlers)) {
             return;
         }
         for (ConfigChangeHandler handler : configChangeHandlers) {

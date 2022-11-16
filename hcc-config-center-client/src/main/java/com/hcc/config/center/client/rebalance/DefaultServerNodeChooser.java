@@ -2,7 +2,7 @@ package com.hcc.config.center.client.rebalance;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
-import org.springframework.util.CollectionUtils;
+import com.hcc.config.center.client.utils.CollUtils;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class DefaultServerNodeChooser implements ServerNodeChooser {
     @Override
     public ServerNodeInfo chooseServerNode(ConfigContext configContext) {
         List<ServerNodeInfo> serverNodeInfos = configContext.getServerNodeInfos();
-        if (CollectionUtils.isEmpty(serverNodeInfos)) {
+        if (CollUtils.isEmpty(serverNodeInfos)) {
             return null;
         }
         if (serverNodeInfos.size() == 1) {

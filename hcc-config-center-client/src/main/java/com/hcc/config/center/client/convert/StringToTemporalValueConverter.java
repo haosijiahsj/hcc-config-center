@@ -23,9 +23,11 @@ public class StringToTemporalValueConverter implements ValueConverter<Temporal> 
         try {
             if (LocalDateTime.class.equals(targetClass)) {
                 return LocalDateTime.parse(value, DATE_TIME_FORMATTER);
-            } else if (LocalDate.class.equals(targetClass)) {
+            }
+            else if (LocalDate.class.equals(targetClass)) {
                 return LocalDate.parse(value, DATE_FORMATTER);
-            } else if (LocalTime.class.equals(targetClass)) {
+            }
+            else if (LocalTime.class.equals(targetClass)) {
                 return LocalTime.parse(value, TIME_FORMATTER);
             }
         } catch (Exception e) {

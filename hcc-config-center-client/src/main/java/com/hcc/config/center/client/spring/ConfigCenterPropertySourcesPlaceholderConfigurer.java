@@ -1,8 +1,8 @@
 package com.hcc.config.center.client.spring;
 
 import com.hcc.config.center.client.context.ConfigContext;
+import com.hcc.config.center.client.utils.CollUtils;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -26,7 +26,7 @@ public class ConfigCenterPropertySourcesPlaceholderConfigurer extends PropertySo
     protected void loadProperties(Properties props) throws IOException {
         super.loadProperties(props);
         Map<String, String> configKeyValueMap = configContext.getConfigKeyValueMap();
-        if (!CollectionUtils.isEmpty(configKeyValueMap)) {
+        if (CollUtils.isNotEmpty(configKeyValueMap)) {
             props.putAll(configKeyValueMap);
         }
     }

@@ -2,6 +2,7 @@ package com.hcc.config.center.client;
 
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.AppConfigInfo;
+import com.hcc.config.center.client.utils.CollUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,7 @@ public class RemoteConfigServiceImpl implements ConfigService {
     @Override
     public AppConfigInfo getConfigInfo(String key) {
         List<AppConfigInfo> appConfigInfos = configContext.getConfigFromConfigCenter(Collections.singletonList(key));
-        if (appConfigInfos == null || appConfigInfos.isEmpty()) {
+        if (CollUtils.isEmpty(appConfigInfos)) {
             return null;
         }
 

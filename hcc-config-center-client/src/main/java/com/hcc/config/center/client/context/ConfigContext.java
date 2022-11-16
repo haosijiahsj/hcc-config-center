@@ -8,11 +8,11 @@ import com.hcc.config.center.client.entity.Constants;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
+import com.hcc.config.center.client.utils.CollUtils;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -247,7 +247,7 @@ public class ConfigContext {
         String serverNodeUrl = this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
 
         List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getList(serverNodeUrl, this.reqParamMap(), ServerNodeInfo.class);
-        if (!CollectionUtils.isEmpty(serverNodeInfos)) {
+        if (CollUtils.isNotEmpty(serverNodeInfos)) {
             this.serverNodeInfos = serverNodeInfos;
         }
     }

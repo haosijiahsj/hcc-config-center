@@ -30,7 +30,7 @@ public interface ConfigService {
      * @return
      */
     default <T> T getConfigValue(String key, Class<T> targetClass) {
-        return Convertions.convertValueToTargetObject(this.getConfigValue(key), targetClass, null);
+        return this.getConfigValue(this.getConfigValue(key), targetClass, null);
     }
 
     /**

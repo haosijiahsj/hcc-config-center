@@ -4,8 +4,8 @@ import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
+import com.hcc.config.center.client.utils.CollUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -93,7 +93,7 @@ public class ConfigCenterClientLongPolling {
         } else {
             msgInfos = configContext.getChangedConfigFromConfigCenter();
         }
-        if (CollectionUtils.isEmpty(msgInfos)) {
+        if (CollUtils.isEmpty(msgInfos)) {
             if (log.isDebugEnabled()) {
                 log.debug("配置中心配置未发生变更，等待下次执行");
             }

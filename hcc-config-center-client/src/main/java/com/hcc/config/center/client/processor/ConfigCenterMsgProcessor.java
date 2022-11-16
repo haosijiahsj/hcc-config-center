@@ -7,10 +7,12 @@ import com.hcc.config.center.client.convert.Convertions;
 import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.ConfigChangeEvent;
-import com.hcc.config.center.client.entity.MsgEventType;
-import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
-import com.hcc.config.center.client.entity.MsgInfo;
 import com.hcc.config.center.client.entity.ConfigRefreshInfo;
+import com.hcc.config.center.client.entity.MsgEventType;
+import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
+import com.hcc.config.center.client.utils.CollUtils;
+import com.hcc.config.center.client.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -189,20 +191,12 @@ public class ConfigCenterMsgProcessor {
 
         try {
             if (field != null) {
-                if (!field.isAccessible()) {
-                    field.setAccessible(true);
-                }
                 Class<? extends ValueConverter> converter = refreshConfigRefInfo.getConverter();
                 Object targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), converter.newInstance());
-                field.set(bean, targetValue);
-                field.setAccessible(field.isAccessible());
+                ReflectUtils.setValue(bean, field, targetValue);
             }
             if (method != null) {
-                if (!method.isAccessible()) {
-                    method.setAccessible(true);
-                }
-                method.invoke(bean, newValue);
-                method.setAccessible(method.isAccessible());
+                ReflectUtils.invokeMethod(bean, method, newValue);
             }
 
             log.info("类：[{}]，{}：[{}]，key: [{}]，value: [{}]处理完成", bean.getClass().getName(), tmpTag, name, key, newValue);
@@ -240,7 +234,7 @@ public class ConfigCenterMsgProcessor {
             return false;
         }
 
-        if (keyRefreshConfigRefInfoMap.get(key) == null && configContext.getConfigChangeHandlers().isEmpty()) {
+        if (keyRefreshConfigRefInfoMap.get(key) == null && CollUtils.isEmpty(configContext.getConfigChangeHandlers())) {
             log.warn("key: [{}]没有字段、方法标记需要刷新，没有定义ConfigChangeHandler，忽略", key);
             // 没有引用，但需要更新本地缓存
             this.refreshConfigMap(key, appConfigInfo, msgInfo);
