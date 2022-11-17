@@ -48,9 +48,9 @@ public class ConfigCenterClientInitializer {
         if (CollUtils.isEmpty(configChangeHandlers)) {
             return;
         }
+        configContext.addConfigChangeHandlers(configChangeHandlers);
         for (ConfigChangeHandler handler : configChangeHandlers) {
             // 添加到上下文
-            configContext.addConfigChangeHandler(handler);
             // 第一次执行handler
             configContext.getConfigKeyValueMap()
                     .entrySet()

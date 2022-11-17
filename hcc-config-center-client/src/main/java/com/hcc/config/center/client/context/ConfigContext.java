@@ -11,7 +11,9 @@ import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.CollUtils;
 import com.hcc.config.center.client.utils.JsonUtils;
 import com.hcc.config.center.client.utils.RestTemplateUtils;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -63,16 +65,22 @@ public class ConfigContext {
     private Integer longPollingTimeout = 90;
 
     // 模式：长连接 OR 长轮询，决定客户端以何种方式连接到推送服务器
+    @Setter(AccessLevel.NONE)
     private String appMode;
     // 所有配置
+    @Setter(AccessLevel.NONE)
     private Map<String, AppConfigInfo> configMap = new HashMap<>();
     // 所有配置，key value形式
+    @Setter(AccessLevel.NONE)
     private Map<String, String> configKeyValueMap = new HashMap<>();
     // 服务节点信息，建立长连接使用
+    @Setter(AccessLevel.NONE)
     private List<ServerNodeInfo> serverNodeInfos = new ArrayList<>();
     // 动态字段引用信息，使用ConfigValue(refresh = true)注解的字段、ListenConfig注解的方法
+    @Setter(AccessLevel.NONE)
     private List<RefreshConfigRefInfo> refreshConfigRefInfos = new ArrayList<>();
     // 配置变更处理器
+    @Setter(AccessLevel.NONE)
     private List<ConfigChangeHandler> configChangeHandlers = new ArrayList<>();
 
     /**
@@ -136,7 +144,7 @@ public class ConfigContext {
      * 请求参数
      * @return
      */
-    private Map<String, Object> reqParamMap() {
+    private Map<String, Object> baseReqParamMap() {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("appCode", appCode);
         paramMap.put("secretKey", secretKey);
@@ -149,7 +157,7 @@ public class ConfigContext {
      */
     private String getModeFromConfigCenter() {
         AppInfo appInfo = RestTemplateUtils.getObject(this.getConfigCenterUrl() + Constants.APP_INFO_URI,
-                this.reqParamMap(), AppInfo.class);
+                this.baseReqParamMap(), AppInfo.class);
         if (appInfo == null || appInfo.getAppMode() == null) {
             throw new IllegalStateException(String.format("未获取到应用：[%s]的模式，请检查应用配置", appCode));
         }
@@ -159,11 +167,12 @@ public class ConfigContext {
 
     /**
      * 从配置中心拉取应用的指定keys的配置
+     * @param keys 为空则获取所有配置
      * @return
      */
     public List<AppConfigInfo> getConfigFromConfigCenter(List<String> keys) {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.APP_CONFIG_URI;
-        Map<String, Object> paramMap = this.reqParamMap();
+        Map<String, Object> paramMap = this.baseReqParamMap();
         if (keys != null && !keys.isEmpty()) {
             paramMap.put("keys", keys);
         }
@@ -178,7 +187,7 @@ public class ConfigContext {
     public List<MsgInfo> getChangedConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.CHANGED_APP_CONFIG_URI;
 
-        Map<String, Object> paramMap = this.reqParamMap();
+        Map<String, Object> paramMap = this.baseReqParamMap();
 
         Map<String, AppConfigInfo> params = new HashMap<>();
         configMap.forEach((k, v) -> {
@@ -222,7 +231,7 @@ public class ConfigContext {
     public List<MsgInfo> longPolling() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.WATCH_URI;
 
-        Map<String, Object> paramMap = this.reqParamMap();
+        Map<String, Object> paramMap = this.baseReqParamMap();
         paramMap.put("timeout", longPollingTimeout);
 
         Set<String> allKeys = configMap.values().stream()
@@ -246,7 +255,7 @@ public class ConfigContext {
     public void refreshServerNode() {
         String serverNodeUrl = this.getConfigCenterUrl() + Constants.SERVER_NODE_URI;
 
-        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getList(serverNodeUrl, this.reqParamMap(), ServerNodeInfo.class);
+        List<ServerNodeInfo> serverNodeInfos = RestTemplateUtils.getList(serverNodeUrl, this.baseReqParamMap(), ServerNodeInfo.class);
         if (CollUtils.isNotEmpty(serverNodeInfos)) {
             this.serverNodeInfos = serverNodeInfos;
         }
@@ -261,11 +270,14 @@ public class ConfigContext {
     }
 
     /**
-     * 添加处理器
-     * @param handler
+     * 批量添加处理器
+     * @param handlers
      */
-    public synchronized void addConfigChangeHandler(ConfigChangeHandler handler) {
-        configChangeHandlers.add(handler);
+    public synchronized void addConfigChangeHandlers(List<ConfigChangeHandler> handlers) {
+        if (CollUtils.isEmpty(handlers)) {
+            return;
+        }
+        configChangeHandlers.addAll(handlers);
     }
 
     /**
