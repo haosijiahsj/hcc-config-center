@@ -1,9 +1,11 @@
 package com.hcc.config.center.client.convert;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -43,13 +45,9 @@ public class ConverterFactory {
         if (targetClass == null) {
             throw new IllegalArgumentException("目标类型不能为空");
         }
-        ValueConverter<?> valueConverter = new NoOpValueConverter();
 
-        if (targetClass.isEnum()) {
-            // 枚举类型
-            valueConverter = new StringToEnumValueConverter();
-        }
-        else if (charTypes.contains(targetClass)) {
+        ValueConverter<?> valueConverter = new NoOpValueConverter();
+        if (charTypes.contains(targetClass)) {
             // char和包装char
             valueConverter = new StringToCharacterValueConverter();
         }
@@ -60,6 +58,10 @@ public class ConverterFactory {
         else if (numberTypes.contains(targetClass)) {
             // 常用数字类型
             valueConverter = new StringToNumberValueConverter();
+        }
+        else if (targetClass.isEnum()) {
+            // 枚举类型
+            valueConverter = new StringToEnumValueConverter();
         }
         else if (Temporal.class.isAssignableFrom(targetClass)) {
             // java8日期

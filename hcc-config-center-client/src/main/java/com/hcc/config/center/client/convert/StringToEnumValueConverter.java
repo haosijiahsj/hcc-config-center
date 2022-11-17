@@ -10,7 +10,11 @@ public class StringToEnumValueConverter implements ValueConverter<Enum> {
 
     @Override
     public Enum convert(String value, Class<? extends Enum> targetClass) {
-        return Enum.valueOf(targetClass, value);
+        try {
+            return Enum.valueOf(targetClass, value);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(String.format("无法将值：[%s]转换到目标类型：[%s]", value, targetClass), e);
+        }
     }
 
 }

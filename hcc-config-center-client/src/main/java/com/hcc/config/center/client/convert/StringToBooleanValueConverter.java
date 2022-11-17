@@ -28,11 +28,11 @@ public class StringToBooleanValueConverter implements ValueConverter<Boolean> {
 
     @Override
     public Boolean convert(String value, Class targetClass) {
-        value = value.toLowerCase();
-        if (trueValues.contains(value)) {
+        String tmpValue = value.toLowerCase();
+        if (trueValues.contains(tmpValue)) {
             return Boolean.TRUE;
         }
-        else if (falseValues.contains(value)) {
+        else if (falseValues.contains(tmpValue)) {
             return Boolean.FALSE;
         }
 
