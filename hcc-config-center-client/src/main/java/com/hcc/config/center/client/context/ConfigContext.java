@@ -277,6 +277,11 @@ public class ConfigContext {
         if (CollUtils.isEmpty(handlers)) {
             return;
         }
+        handlers.forEach(handler -> {
+            if (CollUtils.isEmpty(handler.keys())) {
+                throw new IllegalArgumentException(String.format("ConfigChangeHandler: [%s], 监听的key不能为空！", handler.getClass()));
+            }
+        });
         configChangeHandlers.addAll(handlers);
     }
 
