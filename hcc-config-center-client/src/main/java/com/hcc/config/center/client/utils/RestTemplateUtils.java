@@ -37,7 +37,7 @@ public class RestTemplateUtils {
             url = urlBuilder.toString();
         }
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class, paramMap);
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (responseEntity.getStatusCode() != HttpStatus.OK && responseEntity.getStatusCode() != HttpStatus.NOT_MODIFIED) {
             throw new IllegalStateException("服务异常！");
         }
         return responseEntity.getBody();

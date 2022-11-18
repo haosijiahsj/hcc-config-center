@@ -17,12 +17,14 @@ import com.hcc.config.center.service.zk.ZkHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -158,7 +160,8 @@ public class ConfigCenterController {
     public DeferredResult<List<PushConfigClientMsgVo>> watchAppCode(@RequestParam String appCode,
                                                                     @RequestParam String secretKey,
                                                                     @RequestParam Long timeout,
-                                                                    @RequestParam List<String> keys) {
+                                                                    @RequestParam List<String> keys,
+                                                                    HttpServletResponse response) {
         DeferredResult<List<PushConfigClientMsgVo>> result = new DeferredResult<>(timeout * 1000, Collections.emptyList());
         this.checkApplication(appCode, secretKey);
 
@@ -166,6 +169,7 @@ public class ConfigCenterController {
         LongPollingContext.add(clientId, appCode, result, keys);
 
         result.onTimeout(() -> {
+            response.setStatus(HttpStatus.NOT_MODIFIED.value());
             log.info("clientId: [{}], 超时返回", clientId);
             LongPollingContext.remove(clientId);
         });
