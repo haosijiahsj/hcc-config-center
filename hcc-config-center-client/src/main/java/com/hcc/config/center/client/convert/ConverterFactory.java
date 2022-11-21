@@ -1,5 +1,7 @@
 package com.hcc.config.center.client.convert;
 
+import com.hcc.config.center.client.utils.ReflectUtils;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -70,6 +72,10 @@ public class ConverterFactory {
         else if (Date.class.equals(targetClass)) {
             // 普通日期
             valueConverter = new StringToDateValueConverter();
+        }
+        else if (ReflectUtils.hasAnnotation(targetClass, JsonObject.class)) {
+            // JsonObject标记的对象，使用json转换
+            valueConverter = new StringToObjectValueConverter();
         }
 
         return valueConverter;

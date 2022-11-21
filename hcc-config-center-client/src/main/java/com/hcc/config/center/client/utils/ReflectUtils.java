@@ -1,5 +1,6 @@
 package com.hcc.config.center.client.utils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,6 +42,16 @@ public class ReflectUtils {
         }
         method.invoke(obj, value);
         method.setAccessible(method.isAccessible());
+    }
+
+    /**
+     * 是否存在某个注解
+     * @param clazz
+     * @param annotationClass
+     * @return
+     */
+    public static boolean hasAnnotation(Class clazz, Class annotationClass) {
+        return clazz.getAnnotation(annotationClass) != null;
     }
 
 }
