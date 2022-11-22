@@ -1,7 +1,5 @@
 package com.hcc.config.center.client.convert;
 
-import com.hcc.config.center.client.utils.ReflectUtils;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.Temporal;
@@ -71,8 +69,8 @@ public class ConverterFactory {
             // 普通日期
             valueConverter = new StringToDateValueConverter();
         }
-        else if (ReflectUtils.hasAnnotation(targetClass, ConvertObject.class)) {
-            // JsonObject标记的对象，使用json转换
+        else if (IConvertObject.class.isAssignableFrom(targetClass)) {
+            // 实现IConvertObject的对象，使用json转换
             valueConverter = new StringToObjectValueConverter();
         }
 

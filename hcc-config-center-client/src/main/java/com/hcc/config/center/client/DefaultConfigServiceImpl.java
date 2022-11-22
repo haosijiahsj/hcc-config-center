@@ -17,11 +17,7 @@ public class DefaultConfigServiceImpl implements ConfigService {
         this.configContext = configContext;
     }
 
-    /**
-     * 获取配置信息
-     * @param key
-     * @return
-     */
+    @Override
     public AppConfigInfo getConfigInfo(String key) {
         return configContext.getConfigInfo(key);
     }
