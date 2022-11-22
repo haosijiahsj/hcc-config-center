@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * RestTemplateUtils
+ * Rest接口访问工具类
  *
  * @author hushengjun
  * @date 2022/10/7
@@ -25,6 +25,12 @@ public class RestTemplateUtils {
         restTemplate = new RestTemplate();
     }
 
+    /**
+     * 获取body字符串
+     * @param url
+     * @param paramMap
+     * @return
+     */
     public static String getString(String url, Map<String, Object> paramMap) {
         if (paramMap == null) {
             paramMap = new HashMap<>();
@@ -43,8 +49,19 @@ public class RestTemplateUtils {
         return responseEntity.getBody();
     }
 
+    /**
+     * 获取列表结果
+     * @param url
+     * @param paramMap
+     * @param targetClass
+     * @param <T>
+     * @return
+     */
     public static <T> List<T> getList(String url, Map<String, Object> paramMap, Class<T> targetClass) {
         String body = getString(url, paramMap);
+        if (StrUtils.isEmpty(body)) {
+            return Collections.emptyList();
+        }
 
         RestResult<Object> result = JsonUtils.toObject(body, new TypeReference<RestResult<Object>>() {
         });
@@ -61,6 +78,14 @@ public class RestTemplateUtils {
         return JsonUtils.toList(data, targetClass);
     }
 
+    /**
+     * 获取对象结果
+     * @param url
+     * @param paramMap
+     * @param targetClass
+     * @param <T>
+     * @return
+     */
     public static <T> T getObject(String url, Map<String, Object> paramMap, Class<T> targetClass) {
         String body = getString(url, paramMap);
 

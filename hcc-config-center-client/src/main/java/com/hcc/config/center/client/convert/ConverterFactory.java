@@ -2,12 +2,10 @@ package com.hcc.config.center.client.convert;
 
 import com.hcc.config.center.client.utils.ReflectUtils;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -73,7 +71,7 @@ public class ConverterFactory {
             // 普通日期
             valueConverter = new StringToDateValueConverter();
         }
-        else if (ReflectUtils.hasAnnotation(targetClass, JsonObject.class)) {
+        else if (ReflectUtils.hasAnnotation(targetClass, ConvertObject.class)) {
             // JsonObject标记的对象，使用json转换
             valueConverter = new StringToObjectValueConverter();
         }
