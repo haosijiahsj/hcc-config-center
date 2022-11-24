@@ -30,15 +30,17 @@ public class Convertions {
      * @param value
      * @param targetClass
      * @param valueConverter
+     * @param genericClasses
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static Object convertValueToTargetType(String value, Class<?> targetClass, ValueConverter valueConverter) {
+    public static Object convertValueToTargetType(String value, Class<?> targetClass, ValueConverter valueConverter,
+                                                  Class<?>...genericClasses) {
         if (value == null || String.class.equals(targetClass)) {
             return value;
         }
         if (valueConverter == null || valueConverter instanceof NoOpValueConverter) {
-            valueConverter = ConverterFactory.selectConverter(targetClass);
+            valueConverter = ConverterFactory.selectConverter(targetClass, genericClasses);
         }
 
         return valueConverter.convert(value, targetClass);

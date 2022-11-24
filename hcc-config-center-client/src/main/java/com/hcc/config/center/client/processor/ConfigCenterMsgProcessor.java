@@ -192,7 +192,8 @@ public class ConfigCenterMsgProcessor {
         try {
             if (field != null) {
                 Class<? extends ValueConverter> converter = refreshConfigRefInfo.getConverter();
-                Object targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), converter.newInstance());
+                Object targetValue = Convertions.convertValueToTargetType(newValue, field.getType(), converter.newInstance(),
+                        ReflectUtils.getGenericClasses(field));
                 ReflectUtils.setValue(bean, field, targetValue);
             }
             if (method != null) {

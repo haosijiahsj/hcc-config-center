@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class ConverterFactory {
      * @param targetClass
      * @return
      */
-    public static ValueConverter<?> selectConverter(Class<?> targetClass) {
+    public static ValueConverter<?> selectConverter(Class<?> targetClass, Class<?>...genericClasses) {
         if (targetClass == null) {
             throw new IllegalArgumentException("目标类型不能为空");
         }
@@ -72,6 +73,10 @@ public class ConverterFactory {
         else if (IConvertObject.class.isAssignableFrom(targetClass)) {
             // 实现IConvertObject的对象，使用json转换
             valueConverter = new StringToObjectValueConverter();
+        }
+        else if (Collection.class.isAssignableFrom(targetClass)) {
+            // 集合
+            valueConverter = new StringToCollectionValueConverter(genericClasses);
         }
 
         return valueConverter;

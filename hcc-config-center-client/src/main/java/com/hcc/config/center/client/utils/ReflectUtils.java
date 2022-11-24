@@ -3,6 +3,10 @@ package com.hcc.config.center.client.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 反射工具类
@@ -51,6 +55,24 @@ public class ReflectUtils {
      */
     public static boolean hasAnnotation(Class clazz, Class annotationClass) {
         return clazz.getAnnotation(annotationClass) != null;
+    }
+
+    /**
+     * 获取字段的真实泛型
+     * @param field
+     * @return
+     */
+    public static Class[] getGenericClasses(Field field) {
+        Type genericType = field.getGenericType();
+        List<Class<?>> classes = new ArrayList<>();
+        if (genericType instanceof ParameterizedType) {
+            Type[] actualTypeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
+            for (Type type : actualTypeArguments) {
+                classes.add((Class) type);
+            }
+        }
+
+        return classes.toArray(new Class[0]);
     }
 
 }

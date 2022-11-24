@@ -102,7 +102,8 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
         String configValue = appConfigInfo.getValue();
         try {
-            Object targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), converter.newInstance());
+            Object targetValue = Convertions.convertValueToTargetType(configValue, field.getType(), converter.newInstance(),
+                    ReflectUtils.getGenericClasses(field));
             ReflectUtils.setValue(bean, field, targetValue);
             log.info("类：[{}]，字段：[{}]，key: [{}]，注入值：[{}]完成", bean.getClass().getName(), field.getName(), configKey, configValue);
         } catch (Exception e) {
