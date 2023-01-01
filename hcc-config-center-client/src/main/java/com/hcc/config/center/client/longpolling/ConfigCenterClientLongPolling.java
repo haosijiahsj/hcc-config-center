@@ -2,7 +2,7 @@ package com.hcc.config.center.client.longpolling;
 
 import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.ReceivedServerMsg;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import com.hcc.config.center.client.utils.CollUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -87,13 +87,13 @@ public class ConfigCenterClientLongPolling {
      */
     private void doPullConfigAndProcess(boolean isLongPolling) {
         // 拉取配置中心所有动态配置
-        List<MsgInfo> msgInfos;
+        List<ReceivedServerMsg> receivedServerMsgs;
         if (isLongPolling) {
-            msgInfos = configContext.longPolling();
+            receivedServerMsgs = configContext.longPolling();
         } else {
-            msgInfos = configContext.getChangedConfigFromConfigCenter();
+            receivedServerMsgs = configContext.getChangedConfigFromConfigCenter();
         }
-        if (CollUtils.isEmpty(msgInfos)) {
+        if (CollUtils.isEmpty(receivedServerMsgs)) {
             if (log.isDebugEnabled()) {
                 log.debug("配置中心配置未发生变更，等待下次执行");
             }
@@ -101,7 +101,7 @@ public class ConfigCenterClientLongPolling {
         }
 
         // 添加到处理队列
-        msgInfos.forEach(configCenterMsgProcessor::addMsgToQueue);
+        receivedServerMsgs.forEach(configCenterMsgProcessor::addMsgToQueue);
     }
 
     /**

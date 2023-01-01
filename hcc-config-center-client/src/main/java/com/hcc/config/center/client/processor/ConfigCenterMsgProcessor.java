@@ -9,7 +9,7 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.ConfigChangeEvent;
 import com.hcc.config.center.client.entity.ConfigRefreshInfo;
 import com.hcc.config.center.client.entity.MsgEventType;
-import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.ReceivedServerMsg;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.utils.CollUtils;
 import com.hcc.config.center.client.utils.ReflectUtils;
@@ -36,7 +36,7 @@ public class ConfigCenterMsgProcessor {
     /**
      * 存放所有需要处理的动态字段
      */
-    private final BlockingQueue<MsgInfo> blockingQueue = new ArrayBlockingQueue<>(20);
+    private final BlockingQueue<ReceivedServerMsg> blockingQueue = new ArrayBlockingQueue<>(20);
 
     private final ConfigContext configContext;
     private final ConfigRefreshCallBack callBack;
@@ -61,14 +61,14 @@ public class ConfigCenterMsgProcessor {
 
     /**
      * 添加消息到队列，为满阻塞
-     * @param msgInfo
+     * @param receivedServerMsg
      */
-    public void addMsgToQueue(MsgInfo msgInfo) {
-        if (msgInfo == null) {
+    public void addMsgToQueue(ReceivedServerMsg receivedServerMsg) {
+        if (receivedServerMsg == null) {
             return;
         }
         try {
-            blockingQueue.put(msgInfo);
+            blockingQueue.put(receivedServerMsg);
         } catch (InterruptedException e) {
             throw new IllegalStateException("添加队列值异常", e);
         }
@@ -78,7 +78,7 @@ public class ConfigCenterMsgProcessor {
      * 获取队列头一个值，为空阻塞
      * @return
      */
-    private MsgInfo takeMsgInfo() {
+    private ReceivedServerMsg takeMsgInfo() {
         try {
             return blockingQueue.take();
         } catch (InterruptedException e) {
@@ -107,18 +107,18 @@ public class ConfigCenterMsgProcessor {
      * 处理入口
      */
     private void process() {
-        MsgInfo msgInfo = this.takeMsgInfo();
+        ReceivedServerMsg receivedServerMsg = this.takeMsgInfo();
 
-        String key = msgInfo.getKey();
+        String key = receivedServerMsg.getKey();
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
-        if (!this.needProcess(msgInfo)) {
+        if (!this.needProcess(receivedServerMsg)) {
             return;
         }
 
         boolean processSuccess = true;
         // 处理动态配置
         for (RefreshConfigRefInfo refInfo : keyRefreshConfigRefInfoMap.getOrDefault(key, Collections.emptyList())) {
-            processSuccess = this.processRefreshConfig(msgInfo, appConfigInfo, refInfo);
+            processSuccess = this.processRefreshConfig(receivedServerMsg, appConfigInfo, refInfo);
         }
         // 调用handler
         for (ConfigChangeHandler handler : configContext.getConfigChangeHandlers()) {
@@ -127,9 +127,9 @@ public class ConfigCenterMsgProcessor {
             }
             ConfigChangeEvent event = new ConfigChangeEvent();
             event.setKey(key);
-            event.setEventType(MsgEventType.valueOf(msgInfo.getMsgType()));
+            event.setEventType(MsgEventType.valueOf(receivedServerMsg.getMsgType()));
             event.setOldValue(appConfigInfo == null ? null : appConfigInfo.getValue());
-            event.setNewValue(msgInfo.getValue());
+            event.setNewValue(receivedServerMsg.getValue());
 
             try {
                 handler.onChange(event);
@@ -140,7 +140,7 @@ public class ConfigCenterMsgProcessor {
 
         // 全部成功才会刷新本地值
         if (processSuccess) {
-            this.refreshConfigMap(key, appConfigInfo, msgInfo);
+            this.refreshConfigMap(key, appConfigInfo, receivedServerMsg);
         }
     }
 
@@ -148,30 +148,30 @@ public class ConfigCenterMsgProcessor {
      * 更新本地缓存的值
      * @param key
      * @param appConfigInfo
-     * @param msgInfo
+     * @param receivedServerMsg
      */
-    private void refreshConfigMap(String key, AppConfigInfo appConfigInfo, MsgInfo msgInfo) {
+    private void refreshConfigMap(String key, AppConfigInfo appConfigInfo, ReceivedServerMsg receivedServerMsg) {
         // 本地值刷新
-        if (appConfigInfo == null || appConfigInfo.getVersion() < msgInfo.getVersion() || msgInfo.getForceUpdate()) {
+        if (appConfigInfo == null || appConfigInfo.getVersion() < receivedServerMsg.getVersion() || receivedServerMsg.getForceUpdate()) {
             if (appConfigInfo == null) {
                 appConfigInfo = new AppConfigInfo();
                 appConfigInfo.setKey(key);
             }
-            appConfigInfo.setValue(msgInfo.getValue());
-            appConfigInfo.setVersion(msgInfo.getVersion());
+            appConfigInfo.setValue(receivedServerMsg.getValue());
+            appConfigInfo.setVersion(receivedServerMsg.getVersion());
             configContext.refreshConfigMap(key, appConfigInfo);
         }
     }
 
     /**
      * 处理需要刷新的字段或方法
-     * @param msgInfo
+     * @param receivedServerMsg
      * @param appConfigInfo
      * @param refreshConfigRefInfo
      */
-    private boolean processRefreshConfig(MsgInfo msgInfo, AppConfigInfo appConfigInfo, RefreshConfigRefInfo refreshConfigRefInfo) {
-        String key = msgInfo.getKey();
-        String newValue = msgInfo.getValue();
+    private boolean processRefreshConfig(ReceivedServerMsg receivedServerMsg, AppConfigInfo appConfigInfo, RefreshConfigRefInfo refreshConfigRefInfo) {
+        String key = receivedServerMsg.getKey();
+        String newValue = receivedServerMsg.getValue();
 
         Field field = refreshConfigRefInfo.getField();
         Method method = refreshConfigRefInfo.getMethod();
@@ -184,7 +184,7 @@ public class ConfigCenterMsgProcessor {
         ConfigRefreshInfo info = ConfigRefreshInfo.builder()
                 .key(key)
                 .version(appConfigInfo == null ? null : appConfigInfo.getVersion())
-                .newVersion(msgInfo.getVersion())
+                .newVersion(receivedServerMsg.getVersion())
                 .value(appConfigInfo == null ? null : appConfigInfo.getValue())
                 .newValue(newValue)
                 .build();
@@ -215,22 +215,22 @@ public class ConfigCenterMsgProcessor {
 
     /**
      * 是否能够更新
-     * @param msgInfo
+     * @param receivedServerMsg
      * @return
      */
-    private boolean needProcess(MsgInfo msgInfo) {
-        String key = msgInfo.getKey();
-        Integer newVersion = msgInfo.getVersion();
+    private boolean needProcess(ReceivedServerMsg receivedServerMsg) {
+        String key = receivedServerMsg.getKey();
+        Integer newVersion = receivedServerMsg.getVersion();
 
         // appCode不一致
         String curAppCode = configContext.getAppCode();
-        if (!curAppCode.equals(msgInfo.getAppCode())) {
-            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略", curAppCode, msgInfo.getAppCode());
+        if (!curAppCode.equals(receivedServerMsg.getAppCode())) {
+            log.warn("当前appCode: [{}]与消息appCode: [{}]不匹配，忽略", curAppCode, receivedServerMsg.getAppCode());
             return false;
         }
 
         AppConfigInfo appConfigInfo = configContext.getConfigInfo(key);
-        if (appConfigInfo != null && appConfigInfo.getVersion() >= newVersion && !msgInfo.getForceUpdate()) {
+        if (appConfigInfo != null && appConfigInfo.getVersion() >= newVersion && !receivedServerMsg.getForceUpdate()) {
             log.warn("key: [{}]当前版本：[{}] >= 服务器版本：[{}]，忽略", key, appConfigInfo.getVersion(), newVersion);
             return false;
         }
@@ -238,7 +238,7 @@ public class ConfigCenterMsgProcessor {
         if (keyRefreshConfigRefInfoMap.get(key) == null && CollUtils.isEmpty(configContext.getConfigChangeHandlers())) {
             log.warn("key: [{}]没有字段、方法标记需要刷新，没有定义ConfigChangeHandler，忽略", key);
             // 没有引用，但需要更新本地缓存
-            this.refreshConfigMap(key, appConfigInfo, msgInfo);
+            this.refreshConfigMap(key, appConfigInfo, receivedServerMsg);
             return false;
         }
 

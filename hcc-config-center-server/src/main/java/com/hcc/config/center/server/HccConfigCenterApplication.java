@@ -47,6 +47,8 @@ public class HccConfigCenterApplication implements ApplicationListener<Applicati
         }
         // 启动动态配置推送服务
         configCenterServer = new ConfigCenterServer(host, configCenterProperties.getServerPort());
+        configCenterServer.setBossThreads(configCenterProperties.getBossThreads());
+        configCenterServer.setWorkerThreads(configCenterProperties.getWorkerThreads());
 
         new Thread(configCenterServer::startUp).start();
     }

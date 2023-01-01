@@ -16,3 +16,4 @@ config:
     zkAddress: 127.0.0.1:2181
     zkNamespace: hcc-config-center
     zkSessionTimeOut: 5000
+# debug: true

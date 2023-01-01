@@ -20,5 +20,7 @@ public class ConfigCenterProperties {
     private String zkNamespace;
 
     private Integer serverPort;
+    private Integer bossThreads;
+    private Integer workerThreads;
 
 }

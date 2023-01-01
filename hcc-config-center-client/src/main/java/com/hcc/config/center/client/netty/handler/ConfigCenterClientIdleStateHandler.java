@@ -1,5 +1,6 @@
-package com.hcc.config.center.client.netty;
+package com.hcc.config.center.client.netty.handler;
 
+import com.hcc.config.center.client.netty.ConfigCenterClient;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import com.hcc.config.center.client.context.ConfigContext;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
@@ -17,13 +18,13 @@ import java.util.concurrent.TimeUnit;
  * @date 2022/10/22
  */
 @Slf4j
-public class ConfigCenterIdleStateHandler extends IdleStateHandler {
+public class ConfigCenterClientIdleStateHandler extends IdleStateHandler {
 
     private final ConfigContext configContext;
     private final ServerNodeChooser serverNodeChooser;
     private final ConfigCenterClient configCenterClient;
 
-    public ConfigCenterIdleStateHandler(ConfigContext configContext, ConfigCenterClient configCenterClient) {
+    public ConfigCenterClientIdleStateHandler(ConfigContext configContext, ConfigCenterClient configCenterClient) {
         super(10, 10, 30, TimeUnit.SECONDS);
         this.configContext = configContext;
         this.configCenterClient = configCenterClient;

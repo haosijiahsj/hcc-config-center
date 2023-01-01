@@ -2,16 +2,13 @@ package com.hcc.config.center.client.netty;
 
 import com.hcc.config.center.client.ConfigRefreshCallBack;
 import com.hcc.config.center.client.context.ConfigContext;
-import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.ReceivedServerMsg;
 import com.hcc.config.center.client.processor.ConfigCenterMsgProcessor;
 import com.hcc.config.center.client.rebalance.ServerNodeChooser;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +29,6 @@ public class ConfigCenterClient {
     private String host;
     private int port;
     private ConfigContext configContext;
-    private ConfigRefreshCallBack callBack;
     private ServerNodeChooser serverNodeChooser;
 
     private ConfigCenterMsgProcessor configCenterMsgProcessor;
@@ -44,8 +40,8 @@ public class ConfigCenterClient {
         this.host = host;
         this.port = port;
         this.configContext = configContext;
-        this.callBack = callBack;
         this.serverNodeChooser = serverNodeChooser;
+        this.configCenterMsgProcessor = new ConfigCenterMsgProcessor(configContext, callBack);
     }
 
     /**
@@ -94,19 +90,10 @@ public class ConfigCenterClient {
     private void doConnect(String host, int port, boolean isReconnect) {
         Bootstrap bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup();
-        ConfigCenterClient that = this;
         try {
             bootstrap.group(eventLoopGroup)
                     .channel(NioSocketChannel.class)
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            ChannelPipeline pipeline = socketChannel.pipeline();
-                            configCenterMsgProcessor = new ConfigCenterMsgProcessor(configContext, callBack);
-                            pipeline.addLast(new ConfigCenterIdleStateHandler(configContext, that));
-                            pipeline.addLast(new ConfigCenterClientHandler(configCenterMsgProcessor));
-                        }
-                    });
+                    .handler(new ConfigCenterClientChannelInitializer(configContext, configCenterMsgProcessor, this));
             // 启动客户端连接到客户端
             ChannelFuture channelFuture = bootstrap.connect(host, port).sync();
             channelFuture.addListener(this.channelFutureListener(isReconnect));
@@ -134,12 +121,12 @@ public class ConfigCenterClient {
      * 刷新配置
      */
     private void refreshConfig() {
-        List<MsgInfo> changedMsgInfos = configContext.getChangedConfigFromConfigCenter();
-        if (StringUtils.isEmpty(changedMsgInfos)) {
+        List<ReceivedServerMsg> changedReceivedServerMsgs = configContext.getChangedConfigFromConfigCenter();
+        if (StringUtils.isEmpty(changedReceivedServerMsgs)) {
             return;
         }
 
-        changedMsgInfos.forEach(configCenterMsgProcessor::addMsgToQueue);
+        changedReceivedServerMsgs.forEach(configCenterMsgProcessor::addMsgToQueue);
     }
 
 }

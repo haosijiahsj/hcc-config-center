@@ -5,7 +5,7 @@ import com.hcc.config.center.client.entity.AppConfigInfo;
 import com.hcc.config.center.client.entity.AppInfo;
 import com.hcc.config.center.client.entity.AppMode;
 import com.hcc.config.center.client.entity.Constants;
-import com.hcc.config.center.client.entity.MsgInfo;
+import com.hcc.config.center.client.entity.ReceivedServerMsg;
 import com.hcc.config.center.client.entity.RefreshConfigRefInfo;
 import com.hcc.config.center.client.entity.ServerNodeInfo;
 import com.hcc.config.center.client.utils.CollUtils;
@@ -184,7 +184,7 @@ public class ConfigContext {
      * 从配置中心获取变更了的配置
      * @return
      */
-    public List<MsgInfo> getChangedConfigFromConfigCenter() {
+    public List<ReceivedServerMsg> getChangedConfigFromConfigCenter() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.CHANGED_APP_CONFIG_URI;
 
         Map<String, Object> paramMap = this.baseReqParamMap();
@@ -221,14 +221,14 @@ public class ConfigContext {
 
         paramMap.put("keyParam", JsonUtils.toJson(params.values()));
 
-        return RestTemplateUtils.getList(configCenterUrl, paramMap, MsgInfo.class);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, ReceivedServerMsg.class);
     }
 
     /**
      * 从配置中心获取动态配置
      * @return
      */
-    public List<MsgInfo> longPolling() {
+    public List<ReceivedServerMsg> longPolling() {
         String configCenterUrl = this.getConfigCenterUrl() + Constants.WATCH_URI;
 
         Map<String, Object> paramMap = this.baseReqParamMap();
@@ -245,7 +245,7 @@ public class ConfigContext {
         );
         paramMap.put("keys", String.join(",", allKeys));
 
-        return RestTemplateUtils.getList(configCenterUrl, paramMap, MsgInfo.class);
+        return RestTemplateUtils.getList(configCenterUrl, paramMap, ReceivedServerMsg.class);
     }
 
     /**

@@ -1,14 +1,10 @@
 package com.hcc.config.center.service.context;
 
 import com.hcc.config.center.domain.vo.PushConfigClientMsgVo;
-import com.hcc.config.center.service.utils.JsonUtils;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.AttributeKey;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -80,16 +76,12 @@ public class NettyChannelContext {
         log.info("客户端：{}，appCode: {}初始化成功！", clientId, appCode);
     }
 
-    private static ByteBuf convertByteBuf(String msg) {
-        return Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8);
-    }
-
     public synchronized static void sendMsg(String clientId, PushConfigClientMsgVo msg) {
         AppChannel appChannel = clientIdChannelMap.get(clientId);
         if (appChannel == null) {
             return;
         }
-        appChannel.getChannel().writeAndFlush(convertByteBuf(JsonUtils.toJson(msg)));
+        appChannel.getChannel().writeAndFlush(msg);
 
         log.info("客户端：{}，消息: {}发送成功！", clientId, msg);
     }
@@ -100,7 +92,7 @@ public class NettyChannelContext {
             if (!v.getAppCode().equals(appCode)) {
                 continue;
             }
-            v.getChannel().writeAndFlush(convertByteBuf(msg));
+            v.getChannel().writeAndFlush(msg);
 
             log.info("客户端：{}，消息: {}发送成功！", v.getClientId(), msg);
         }
@@ -129,14 +121,15 @@ public class NettyChannelContext {
                 continue;
             }
             msg.setClientId(v.getClientId());
-            v.getChannel().writeAndFlush(convertByteBuf(JsonUtils.toJson(msg)));
+//            v.getChannel().writeAndFlush(convertByteBuf(JsonUtils.toJson(msg)));
+            v.getChannel().writeAndFlush(msg);
 
             log.info("客户端：{}，消息: {}发送成功！", v.getClientId(), msg);
         }
     }
 
     public synchronized static void sendMsgToAll(String msg) {
-        channelGroup.writeAndFlush(convertByteBuf(msg));
+        channelGroup.writeAndFlush(msg);
 
         log.info("所有客户端，消息: {}发送成功！", msg);
     }
