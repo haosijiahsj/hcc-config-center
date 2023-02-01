@@ -37,6 +37,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -106,6 +107,9 @@ public class ApplicationConfigController {
     @PostMapping("/import")
     private void importConfig(@RequestParam Long applicationId, @RequestParam MultipartFile file) {
         String filename = file.getOriginalFilename();
+        if (filename == null) {
+            throw new IllegalArgumentException("无效的文件！");
+        }
         if (!filename.endsWith("json") && !filename.endsWith("yml") && !filename.endsWith("properties")) {
             throw new IllegalArgumentException("仅支持json、yml、properties文件的导入！");
         }
@@ -121,11 +125,11 @@ public class ApplicationConfigController {
                 String json = new String(file.getBytes(), StandardCharsets.UTF_8);
                 applicationConfigPos.addAll(JsonUtils.toList(json, ApplicationConfigPo.class));
             } else if (filename.endsWith("yml")) {
-                Map map = YamlUtil.load(file.getInputStream(), Map.class);
+                Map<String, String> map = this.parseYml(file.getInputStream());
                 map.forEach((k, v) -> {
                     ApplicationConfigPo configPo = new ApplicationConfigPo();
-                    configPo.setKey(k.toString());
-                    configPo.setValue(v.toString());
+                    configPo.setKey(k);
+                    configPo.setValue(v);
                     applicationConfigPos.add(configPo);
                 });
             } else if (filename.endsWith("properties")) {
@@ -164,6 +168,14 @@ public class ApplicationConfigController {
         }
 
         applicationConfigPos.forEach(applicationConfigService::saveOrUpdateConfig);
+    }
+
+    private Map<String, String> parseYml(InputStream inputStream) {
+        Map map = YamlUtil.load(inputStream, Map.class);
+
+        Map<String, String> resultMap = new HashMap<>();
+
+        return resultMap;
     }
 
     @IgnoreRestResult

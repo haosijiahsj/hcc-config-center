@@ -1,6 +1,6 @@
 package com.hcc.config.center.client.annotation;
 
-import com.hcc.config.center.client.convert.NoOpValueConverter;
+import com.hcc.config.center.client.convert.converter.NoOpValueConverter;
 import com.hcc.config.center.client.convert.ValueConverter;
 
 import java.lang.annotation.ElementType;

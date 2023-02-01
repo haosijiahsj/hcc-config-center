@@ -1,4 +1,7 @@
-package com.hcc.config.center.client.convert;
+package com.hcc.config.center.client.convert.converter;
+
+import com.hcc.config.center.client.convert.IConvertEnum;
+import com.hcc.config.center.client.convert.ValueConverter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

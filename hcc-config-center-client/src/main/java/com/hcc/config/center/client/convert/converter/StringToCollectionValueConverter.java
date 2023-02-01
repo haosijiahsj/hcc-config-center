@@ -1,5 +1,6 @@
-package com.hcc.config.center.client.convert;
+package com.hcc.config.center.client.convert.converter;
 
+import com.hcc.config.center.client.convert.ValueConverter;
 import com.hcc.config.center.client.utils.JsonUtils;
 
 import java.util.Arrays;

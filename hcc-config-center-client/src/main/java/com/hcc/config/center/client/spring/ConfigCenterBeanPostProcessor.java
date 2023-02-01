@@ -36,7 +36,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] declaredFields = bean.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
-            ConfigValue configValue = field.getAnnotation(ConfigValue.class);
+            ConfigValue configValue = ReflectUtils.getAnnotation(field, ConfigValue.class);
             if (configValue == null) {
                 continue;
             }
@@ -56,7 +56,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
         }
 
         for (Method method : bean.getClass().getDeclaredMethods()) {
-            ConfigListener configListener = method.getAnnotation(ConfigListener.class);
+            ConfigListener configListener = ReflectUtils.getAnnotation(method, ConfigListener.class);
             if (configListener == null) {
                 continue;
             }
@@ -87,7 +87,7 @@ public class ConfigCenterBeanPostProcessor implements BeanPostProcessor {
      * @param field
      */
     private void injectConfigValue(String configKey, Class<? extends ValueConverter> converter, Object bean, Field field) {
-        Value value = field.getAnnotation(Value.class);
+        Value value = ReflectUtils.getAnnotation(field, Value.class);
         if (value != null) {
             // 使用spring的value注解后，不进行注入，由spring进行注入
             return;

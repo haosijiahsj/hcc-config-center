@@ -1,5 +1,6 @@
 package com.hcc.config.center.client.utils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -24,27 +25,46 @@ public class ReflectUtils {
      * @throws IllegalAccessException
      */
     public static void setValue(Object obj, Field field, Object value) throws IllegalAccessException {
-        if (!field.isAccessible()) {
+        boolean accessible = field.isAccessible();
+        if (!accessible) {
             field.setAccessible(true);
         }
         field.set(obj, value);
-        field.setAccessible(field.isAccessible());
+        field.setAccessible(accessible);
     }
 
     /**
      * 反射调用方法
      * @param obj
      * @param method
-     * @param value
+     * @param args
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    public static void invokeMethod(Object obj, Method method, Object...value) throws InvocationTargetException, IllegalAccessException {
-        if (!method.isAccessible()) {
+    public static void invokeMethod(Object obj, Method method, Object...args) throws InvocationTargetException, IllegalAccessException {
+        invokeMethod(obj, method, Object.class, args);
+    }
+
+    /**
+     * 反射调用方法
+     * @param obj
+     * @param method
+     * @param returnClass
+     * @param args
+     * @param <T>
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    public static <T> T invokeMethod(Object obj, Method method, Class<T> returnClass, Object... args) throws InvocationTargetException, IllegalAccessException {
+        boolean accessible = method.isAccessible();
+        if (!accessible) {
             method.setAccessible(true);
         }
-        method.invoke(obj, value);
-        method.setAccessible(method.isAccessible());
+        Object returnObj = method.invoke(obj, args);
+        method.setAccessible(accessible);
+
+        return returnClass.cast(returnObj);
     }
 
     /**
@@ -55,6 +75,34 @@ public class ReflectUtils {
      */
     public static boolean hasAnnotation(Class clazz, Class annotationClass) {
         return clazz.getAnnotation(annotationClass) != null;
+    }
+
+    /**
+     * 从字段中获取注解
+     * @param field
+     * @param annotationClass
+     * @param <T>
+     * @return
+     */
+    public static <T extends Annotation> T getAnnotation(Field field, Class<T> annotationClass) {
+        if (field == null || annotationClass == null) {
+            return null;
+        }
+        return field.getAnnotation(annotationClass);
+    }
+
+    /**
+     * 从方法中获取注解
+     * @param method
+     * @param annotationClass
+     * @param <T>
+     * @return
+     */
+    public static <T extends Annotation> T getAnnotation(Method method, Class<T> annotationClass) {
+        if (method == null || annotationClass == null) {
+            return null;
+        }
+        return method.getAnnotation(annotationClass);
     }
 
     /**

@@ -54,6 +54,7 @@ public class ConfigCenterServer {
             serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
                     // 服务端使用的NioServerSocketChannel
                     .channel(NioServerSocketChannel.class)
+                    // 设置全连接队列的大小
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(new ConfigCenterServerChannelInitializer());

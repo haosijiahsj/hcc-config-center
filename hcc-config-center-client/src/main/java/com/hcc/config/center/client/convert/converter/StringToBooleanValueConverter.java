@@ -1,4 +1,6 @@
-package com.hcc.config.center.client.convert;
+package com.hcc.config.center.client.convert.converter;
+
+import com.hcc.config.center.client.convert.ValueConverter;
 
 import java.util.HashSet;
 import java.util.Set;
